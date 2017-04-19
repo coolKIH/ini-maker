@@ -28,7 +28,8 @@ html {
 
 body {
   font-family: 'Noto Sans SC', 'Roboto', 'Arial', 'Helvetica', sans-serif;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   background-color: #ebeced; }
 
 .v-align-placeholder {
@@ -289,7 +290,7 @@ body {
       cursor: auto;
       height: 100%; }
 
-#rubbish-bin {
+.rb-btns {
   position: fixed;
   bottom: 1em;
   right: 1em;
@@ -297,8 +298,25 @@ body {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  cursor: pointer; }
-  #rubbish-bin img {
-    width: 50px; }
+  white-space: nowrap;
+  z-index: 100; }
+  .rb-btns .button {
+    background-color: white;
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    border-radius: 50px;
+    border: 2px solid #262626;
+    color: #262626;
+    font-weight: bold;
+    font-size: 2em;
+    cursor: pointer; }
+    .rb-btns .button:not(:last-child) {
+      margin-right: 0.2em; }
 
 /*# sourceMappingURL=main.css.map */

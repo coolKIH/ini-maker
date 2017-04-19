@@ -17,257 +17,324 @@
  *
  */
 /* eslint-env browser */
-/* globals interact, Mustache */
-(function(common) {
+/* globals Mediator, interact */
+(function() {
   'use strict';
 
-  /** Run service worker */
-  function runServiceWorker() {
-    // Check to make sure service workers are supported in the current browser,
-    // and that the current page is accessed from a secure origin. Using a
-    // service worker from an insecure origin will trigger JS console errors. See
-    // http://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
-    var isLocalhost = Boolean(window.location.hostname === 'localhost' ||
-      // [::1] is the IPv6 localhost address.
-      window.location.hostname === '[::1]' ||
-      // 127.0.0.1/8 is considered localhost for IPv4.
-      window.location.hostname.match(
-        /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-      )
-    );
-
-    if ('serviceWorker' in navigator &&
-      (window.location.protocol === 'https:' || isLocalhost)) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(function(registration) {
-          // updatefound is fired if service-worker.js changes.
-          registration.onupdatefound = function() {
-            // updatefound is also fired the very first time the SW is installed,
-            // and there's no need to prompt for a reload at that point.
-            // So check here to see if the page is already controlled,
-            // i.e. whether there's an existing service worker.
-            if (navigator.serviceWorker.controller) {
-              // The updatefound event implies that registration.installing is set:
-              // https://slightlyoff.github.io/ServiceWorker/spec/service_worker/index.html#service-worker-container-updatefound-event
-              var installingWorker = registration.installing;
-
-              installingWorker.onstatechange = function() {
-                switch (installingWorker.state) {
-                  case 'installed':
-                    // At this point, the old content will have been purged and the
-                    // fresh content will have been added to the cache.
-                    // It's the perfect time to display a 'New content is
-                    // available; please refresh.' message in the page's interface.
-                    break;
-
-                  case 'redundant':
-                    throw new Error('The installing ' +
-                      'service worker became redundant.');
-
-                  default:
-                  // Ignore
-                }
-              };
-            }
-          };
-        }).catch(function(e) {
-          console.error('Error during service worker registration:', e);
-        });
-    }
-  }
-
-  var uiCtrl = {
-    init: function() {
-      this.mainHamburger = $('#main-hamburger');
-      this.mainNavigation = $('#main-navigation');
-      this.mainNavBar = $('#main-navbar');
-      this.canvasPlayground = $('#canvas-playground');
-
-      this.registerEvtListeners();
-      return this;
+  var common = {
+    commands: {
+      ADD_TEXT: 'add-text'
     },
-    registerEvtListeners: function() {
-      var self = this;
-      /** hide or show the side navigation */
-      function toggleSideNav() {
-        self.mainNavigation.add(self.mainHamburger).toggleClass('clicked');
+    utils: {
+      updatePosition: function(target, x, y) {
+        this.setCSSTransform2D(target, x, y);
+        target.attr('data-x', x).attr('data-y', y);
+      },
+      updateSize: function(target, w, h) {
+        target.width(w);
+        target.height(h);
+      },
+      setCSSTransform2D: function(target, x, y) {
+        target.css(
+          {
+            '-webkit-transform': 'translate(' + x + 'px,' + y + 'px)',
+            'transform': 'translate(' + x + 'px,' + y + 'px)'
+          });
+      },
+      setCtnEditable: function(htmlEl, setting) {
+        $(htmlEl).find('.inner').attr('contenteditable', setting);
+      },
+      docExecCmd: function(command, ui, options) {
+        return document.execCommand(command, ui || false, options || null);
+      },
+      makeElResizable: function(selector, options) {
+        var self = this;
+        options = options || {};
+        interact(selector)
+          .resizable({
+            preserveAspectRatio: options.preserveAspectRatio || false,
+            edges: {
+              left: options.left || false,
+              top: options.top || false,
+              right: options.right || false,
+              bottom: options.bottom || false
+            },
+            invert: options.invert || 'reposition'
+          })
+          .on('resizemove', function(event) {
+            var target = $(event.target);
+            var x = parseFloat(target.attr('data-x') || 0);
+            var y = parseFloat(target.attr('data-y') || 0);
+
+            target.width(event.rect.width);
+            target.height(event.rect.height);
+
+            x += event.deltaRect.left;
+            y += event.deltaRect.top;
+
+            self.updatePosition(target, x, y);
+
+            if (options.action && options.action === 'resizeSelected') {
+              self.updatePosition(target.siblings('.element'), x, y);
+              self.updateSize(
+                target.siblings('.element'), target.width(), target.height()
+              );
+            }
+          });
+      },
+      makeElDraggable: function(selector, options) {
+        options = options || {};
+        var self = this;
+        interact(selector, {
+          context: options.context || document
+        })
+          .draggable({
+            inertia: options.inertia || true,
+            autoScroll: options.autoScroll || true,
+            onstart: function(event) {
+              event.target.style.pointerEvents = 'none';
+            },
+            onmove: function(event) {
+              var target = $(event.target);
+              var x = parseFloat(target.attr('data-x') || 0) + event.dx;
+              var y = parseFloat(target.attr('data-y') || 0) + event.dy;
+
+              self.updatePosition(target, x, y);
+
+              if (options.action && options.action === 'moveSelected') {
+                self.updatePosition(target.siblings('.element'), x, y);
+              }
+            },
+            onend: function(event) {
+              event.target.style.pointerEvents = 'auto';
+            }
+          });
+      },
+      getElemFromTpl: function(tplSelector) {
+        return $(
+          $.parseHTML($(tplSelector).html().trim())
+        );
       }
-      /** Event handler on window resize */
-      function onWindowResize() {
-        var mainNavHeight = self.mainNavBar.height();
-        self.mainNavigation.css({top: mainNavHeight + 'px'})
-          .add(self.mainHamburger).removeClass('clicked');
-        self.canvasPlayground.css('margin-top', mainNavHeight + 'px');
-      }
-      /**
-       * Event handler for navigation items
-       * @param {Event} event - Get touched target from this event
-       * */
-      function onNavTouched(event) {
-        var targetEl = $(event.target);
-        self.mainNavigation.find('a').removeClass('active');
-        targetEl.addClass('active');
-      }
-      onWindowResize();
-      self.mainHamburger.click(toggleSideNav);
-      self.mainNavigation.click(onNavTouched);
-      $(window).on('resize', onWindowResize);
-      return self;
     }
   };
-  var canvasCtrl = {
-    init: function() {
-      this.canvasPages = $('#canvas-pages');
-      this.selectedPageCtn = this.canvasPages.find('.elements');
-      this.selectionBox = $(
-        $.parseHTML($('#tpl--selection-box').html().trim())
-      );
 
-      this.registerEvtListeners();
-      common.utils.makeElResizable('.page',
-        {right: '.resize-handle', bottom: '.resize-handle'});
-      common.utils.makeElResizable('.selection-box', {
-        top: '.t, .lt, .rt',
-        right: '.r, .rt, .rb',
-        bottom: '.b, .lb, .rb',
-        left: '.l, .lt, .lb',
-        action: 'resizeSelected'
-      });
-      common.utils.makeElDraggable('.selection-box', {
-        action: 'moveSelected'
-      });
-    },
-    registerEvtListeners: function() {
-      var self = this;
+  var canvasCtrl = new Mediator();
 
-      /**
-       * When anything but currently active element is clicked,
-       * that element will be de-active.
-       * @param {Event} event - Get touched target from this event
-       */
-      function onCanvasPagesClick(event) {
-        var target = $(event.target).closest('.element');
-        if (self.activeEl) {
-          if (!target.is(self.activeEl)) {
-            self.setElActive(self.activeEl, false);
-          }
-        }
-        if (target.is('.element')) {
-          self.setElActive(target, true);
+  (function(canvasCtrl) {
+    var overlays = $('#overlays');
+    var selectionBox = common.utils.getElemFromTpl('#tpl--selection-box');
+    var selectedPageCtn;
+    var activeEl;
+
+    /**
+     * When anything but currently active element is clicked,
+     * the active element will be inactive.
+     * @param {Event} event - Get touched target from this event
+     */
+    function onCanvasPageClick(event) {
+      selectedPageCtn = $(this).find('.elements');
+      var target = $(event.target).closest('.element');
+      if (activeEl) {
+        if (!target.is(activeEl)) {
+          setElActive(activeEl, false);
         }
       }
-      this.canvasPages.children('.page').click(onCanvasPagesClick);
+      if (target.is('.element')) {
+        setElActive(target, true);
+      }
+    }
 
-      self.subscribe('addRichTextEl', self.addRichTextEl);
-    },
-    setWrapSelectionBox: function(elem, wrap) {
-      wrap = typeof wrap === 'undefined'? true : wrap;
+    /**
+     * When subscribed 'addPage' event is published
+     * @param {object} pageEl - jQuery object of page elem
+     */
+    function onAddPage(pageEl) {
+      pageEl.click(onCanvasPageClick);
+      pageEl.click();
+    }
+    canvasCtrl.subscribe('addPage', onAddPage);
+    canvasCtrl.subscribe('addRichTextEl', addRichTextEl);
+
+    common.utils.makeElResizable('.page',
+      {right: '.resize-handle', bottom: '.resize-handle'});
+    common.utils.makeElResizable('.selection-box', {
+      top: '.t, .lt, .rt',
+      right: '.r, .rt, .rb',
+      bottom: '.b, .lb, .rb',
+      left: '.l, .lt, .lb',
+      action: 'resizeSelected'
+    });
+    common.utils.makeElDraggable('.selection-box', {
+      action: 'moveSelected'
+    });
+
+    /**
+     * When an element is focused/blur, show/hide the selection box
+     * @param {object} elem - jQuery object
+     * @param {boolean} wrap - show or hide the selection box
+     */
+    function setWrapSelectionBox(elem, wrap) {
+      wrap = typeof wrap === 'undefined' ? true : wrap;
       var x = parseFloat(elem.attr('data-x') || 0);
       var y = parseFloat(elem.attr('data-y') || 0);
 
-      var pagePos = this.selectedPageCtn.closest('.page').position();
+      var pagePos = selectedPageCtn.closest('.page').position();
       var dx = pagePos.left;
       var dy = pagePos.top;
 
-      if(wrap) {
+      if (wrap) {
         x += dx;
         y += dy;
 
         elem.prevElem = elem.prev('.element');
         elem.nextElem = elem.next('.element');
 
-        this.canvasPages.find('#overlays').append(this.selectionBox, elem);
-        this.selectionBox
+        overlays.append(selectionBox, elem);
+        selectionBox
           .width(elem.width())
           .height(elem.height());
       } else {
         x -= dx;
         y -= dy;
-        this.selectionBox.remove();
+        selectionBox.remove();
         if (elem.prevElem && elem.prevElem.length) {
           elem.insertAfter(elem.prevElem);
         } else if (elem.nextElem && elem.nextElem.length) {
           elem.insertBefore(elem.nextElem);
         } else {
-          this.selectedPageCtn.append(elem);
+          selectedPageCtn.append(elem);
         }
       }
       common.utils.updatePosition(elem, x, y);
-      common.utils.updatePosition(this.selectionBox, x, y);
-    },
-    setElActive: function(elem, active) {
+      common.utils.updatePosition(selectionBox, x, y);
+    }
+
+    /**
+     * Active elements are meant to be selected
+     * @param {object} elem - jQuery object
+     * @param {boolean} active - make the elem active or inactive
+     */
+    function setElActive(elem, active) {
       common.utils.setCtnEditable(elem, active);
       if (active) {
-        this.activeEl = elem.addClass('active');
-        this.setWrapSelectionBox(elem);
+        activeEl = elem.addClass('active');
+        setWrapSelectionBox(elem);
       } else {
         elem.removeClass('active');
-        this.activeEl = null;
-        this.setWrapSelectionBox(elem, false);
+        activeEl = null;
+        setWrapSelectionBox(elem, false);
       }
-      return this;
-    },
-    createNode: function(nodeName, cssOptions) {
+    }
+
+    /**
+     * Create new common node for specific use
+     * @param {string} nodeName - name of the node, mostly 'div'
+     * @param {object} cssOptions - wrapped with css styles
+     * @return {object} - built jQuery object
+     */
+    function createNode(nodeName, cssOptions) {
       var node = $(document.createElement('div'));
       var innerNode = $(document.createElement(nodeName)).addClass('inner');
       node.append(innerNode);
 
       common.utils.makeElDraggable('.element', {
-        context: this.selectedPageCtn.get(0)
+        context: selectedPageCtn.get(0)
       });
 
       return node.css(cssOptions || {}).addClass('element');
-    },
-    addText: function() {
-      var textNode = this.createNode('div');
+    }
+
+    /**
+     * Create a new text element
+     */
+    function addText() {
+      var textNode = createNode('div');
       textNode.addClass('text').find('.inner').text('请输入文本内容');
-      if (this.activeEl) {
-        this.setElActive(this.activeEl, false);
+      if (activeEl) {
+        setElActive(activeEl, false);
       }
-      this.setElActive(textNode, true);
+      setElActive(textNode, true);
       textNode.find('.inner').focus();
-    },
-    addRichTextEl: function(command) {
+    }
+
+    /**
+     * Create any rich text element like text, pictures, etc
+     * @param {string} command - used to specifically create an element
+     */
+    function addRichTextEl(command) {
       switch (command) {
         case common.commands.ADD_TEXT:
-          this.addText();
+          addText();
           break;
         default:
           break;
       }
     }
-  };
-  var toolbarCtrl = {
-    init: function() {
-      this.tbRichText = $('#tb--rich-text');
+  })(canvasCtrl);
 
-      this.registerEvtListeners();
-    },
-    registerEvtListeners: function() {
-      var self = this;
+  (function(canvasCtrl) {
+    var tbRichText = $('#tb--rich-text');
 
-      /**
-       * Handle it when user click a button on the toolbar
-       */
-      function onTbRichTextClick() {
-        var targetEl = $(this);
-        var command = targetEl.attr('data-command');
-        canvasCtrl.publish('addRichTextEl', command);
+    /**
+     * Handle it when user click a button on the toolbar
+     */
+    function onTbRichTextClick() {
+      var targetEl = $(this);
+      var command = targetEl.attr('data-command');
+      canvasCtrl.publish('addRichTextEl', command);
+    }
+    tbRichText.children().click(onTbRichTextClick);
+  })(canvasCtrl);
+
+  (function(canvasCtrl) {
+    var mainHamburger = $('#main-hamburger');
+    var mainNavigation = $('#main-navigation');
+    var mainNavBar = $('#main-navbar');
+    var canvasPlayground = $('#canvas-playground');
+    var addPageBtn = $('#add-page');
+    var canvasPages = $('#canvas-pages');
+
+    /** When navigation toggle button is clicked */
+    function onToggleSideNav() {
+      mainNavigation.add(mainHamburger).toggleClass('clicked');
+    }
+
+    /** Event handler on window resize */
+    function onWindowResize() {
+      var mainNavHeight = mainNavBar.height();
+      mainNavigation.css({top: mainNavHeight + 'px'})
+        .add(mainHamburger).removeClass('clicked');
+      canvasPlayground.css('margin-top', mainNavHeight + 'px');
+    }
+
+    /**
+     * Event handler for navigation items
+     * @param {Event} event - Get touched target from this event
+     * */
+    function onNavTouched(event) {
+      var targetEl = $(event.target);
+      mainNavigation.find('a').removeClass('active');
+      targetEl.addClass('active');
+    }
+
+    /**
+     * When right-bottom add-page button is clicked
+     */
+    function onAddPageBtnClick() {
+      var pageEl = common.utils.getElemFromTpl('#tpl--page');
+      var lastPage = $('.page').last();
+      if (lastPage.length) {
+        pageEl.css('top', lastPage.position().top + lastPage.height() + 40);
       }
-      self.tbRichText.children().click(onTbRichTextClick);
+      canvasPages.append(pageEl);
+      canvasCtrl.publish('addPage', pageEl);
     }
-  };
-  var iniApp = {
-    boot: function() {
-      runServiceWorker();
 
-      $.extend(true, uiCtrl, new Mediator());
-      $.extend(true, canvasCtrl, new Mediator());
-      $.extend(true, toolbarCtrl, new Mediator());
-      uiCtrl.init();
-      toolbarCtrl.init();
-      canvasCtrl.init();
-    }
-  };
-  iniApp.boot();
-})(_common);
+    onWindowResize();
+
+    mainHamburger.click(onToggleSideNav);
+    mainNavigation.click(onNavTouched);
+    $(window).on('resize', onWindowResize);
+    addPageBtn.click(onAddPageBtnClick);
+  })(canvasCtrl);
+})();

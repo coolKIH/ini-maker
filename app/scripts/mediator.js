@@ -6,6 +6,7 @@
 // that we are creating a "class" here for creating object instances from later, and that we
 // initialize the events array afresh for each object instance to avoid all instances sharing
 // the same array in memory.
+/** Constructor */
 function Mediator() {
   this.events = {};
 }
@@ -19,8 +20,8 @@ Mediator.prototype.subscribe = function(eventName, callback) {
 };
 
 Mediator.prototype.unsubscribe = function(eventName, callback) {
-  var index = 0,
-    length = 0;
+  var index = 0;
+  var length = 0;
 
   if (this.events.hasOwnProperty(eventName)) {
     length = this.events[eventName].length;
@@ -35,9 +36,9 @@ Mediator.prototype.unsubscribe = function(eventName, callback) {
 };
 
 Mediator.prototype.publish = function(eventName) {
-  var data = Array.prototype.slice.call(arguments, 1),
-    index = 0,
-    length = 0;
+  var data = Array.prototype.slice.call(arguments, 1);
+  var index = 0;
+  var length = 0;
 
   if (this.events.hasOwnProperty(eventName)) {
     length = this.events[eventName].length;

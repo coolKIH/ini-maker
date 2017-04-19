@@ -68,6 +68,13 @@ gulp.task('copy', () =>
     .pipe($.size({title: 'copy'}))
 );
 
+
+gulp.task('bower_components', () =>
+  gulp.src('app/bower_components/**/*')
+    .pipe(gulp.dest('dist/bower_components'))
+    .pipe($.size({title: 'bower_components'}))
+);
+
 // Compile and automatically prefix stylesheets
 gulp.task('styles', () => {
   const AUTOPREFIXER_BROWSERS = [
@@ -110,6 +117,7 @@ gulp.task('scripts', () =>
       // Note: Since we are not using useref in the scripts build pipeline,
       //       you need to explicitly list your scripts here in the right order
       //       to be correctly concatenated
+      './app/scripts/mediator.js',
       './app/scripts/main.js'
       // Other scripts
     ])
@@ -197,7 +205,7 @@ gulp.task('serve:dist', ['default'], () =>
 gulp.task('default', ['clean'], cb =>
   runSequence(
     'styles',
-    ['lint', 'html', 'scripts', 'images', 'copy'],
+    ['lint', 'html', 'scripts', 'images', 'copy', 'bower_components'],
     'generate-service-worker',
     cb
   )

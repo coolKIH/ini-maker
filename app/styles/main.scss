@@ -40,7 +40,8 @@ html {
 }
 body {
   font-family: 'Noto Sans SC', 'Roboto', 'Arial', 'Helvetica', sans-serif;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   background-color: $body-bg-color;
 }
 .v-align-placeholder {
@@ -378,7 +379,7 @@ $selection-handle-size: 12px;
     }
   }
 }
-#rubbish-bin {
+.rb-btns {
   position: fixed;
   bottom: 1em;
   right: 1em;
@@ -386,9 +387,27 @@ $selection-handle-size: 12px;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  cursor: pointer;
-
-  img {
+  white-space: nowrap;
+  z-index: 100;
+  .button {
+    background-color: white;
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    display: inline-block;
     width: 50px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    border-radius: 50px;
+    border: 2px solid $vip-black;
+    color: $vip-black;
+    font-weight: bold;
+    font-size: 2em;
+    cursor: pointer;
+
+    &:not(:last-child) {
+      margin-right: 0.2em;
+    }
   }
 }

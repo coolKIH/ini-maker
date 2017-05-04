@@ -89,7 +89,7 @@
           context: options.context || document
         })
           .draggable({
-            inertia: options.inertia || true,
+            inertia: options.inertia || false,
             autoScroll: options.autoScroll || true,
             onstart: function(event) {
               event.target.style.pointerEvents = 'none';

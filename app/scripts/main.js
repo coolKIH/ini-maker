@@ -18,7 +18,7 @@
  */
 /* eslint-env browser */
 /* globals Mediator, interact */
-(function() {
+(function () {
   'use strict';
 
   var common = {
@@ -26,28 +26,28 @@
       ADD_TEXT: 'add-text'
     },
     utils: {
-      updatePosition: function(target, x, y) {
+      updatePosition: function (target, x, y) {
         this.setCSSTransform2D(target, x, y);
         target.attr('data-x', x).attr('data-y', y);
       },
-      updateSize: function(target, w, h) {
+      updateSize: function (target, w, h) {
         target.width(w);
         target.height(h);
       },
-      setCSSTransform2D: function(target, x, y) {
+      setCSSTransform2D: function (target, x, y) {
         target.css(
           {
             '-webkit-transform': 'translate(' + x + 'px,' + y + 'px)',
             'transform': 'translate(' + x + 'px,' + y + 'px)'
           });
       },
-      setCtnEditable: function(htmlEl, setting) {
+      setCtnEditable: function (htmlEl, setting) {
         $(htmlEl).find('.inner').attr('contenteditable', setting);
       },
-      docExecCmd: function(command, ui, options) {
+      docExecCmd: function (command, ui, options) {
         return document.execCommand(command, ui || false, options || null);
       },
-      makeElResizable: function(selector, options) {
+      makeElResizable: function (selector, options) {
         var self = this;
         options = options || {};
         interact(selector)
@@ -61,7 +61,7 @@
             },
             invert: options.invert || 'reposition'
           })
-          .on('resizemove', function(event) {
+          .on('resizemove', function (event) {
             var target = $(event.target);
             var x = parseFloat(target.attr('data-x') || 0);
             var y = parseFloat(target.attr('data-y') || 0);
@@ -82,7 +82,7 @@
             }
           });
       },
-      makeElDraggable: function(selector, options) {
+      makeElDraggable: function (selector, options) {
         options = options || {};
         var self = this;
         interact(selector, {
@@ -91,10 +91,10 @@
           .draggable({
             inertia: options.inertia || false,
             autoScroll: options.autoScroll || true,
-            onstart: function(event) {
+            onstart: function (event) {
               event.target.style.pointerEvents = 'none';
             },
-            onmove: function(event) {
+            onmove: function (event) {
               var target = $(event.target);
               var x = parseFloat(target.attr('data-x') || 0) + event.dx;
               var y = parseFloat(target.attr('data-y') || 0) + event.dy;
@@ -105,12 +105,12 @@
                 self.updatePosition(target.siblings('.element'), x, y);
               }
             },
-            onend: function(event) {
+            onend: function (event) {
               event.target.style.pointerEvents = 'auto';
             }
           });
       },
-      getElemFromTpl: function(tplSelector) {
+      getElemFromTpl: function (tplSelector) {
         return $(
           $.parseHTML($(tplSelector).html().trim())
         );
@@ -119,8 +119,9 @@
   };
 
   var canvasCtrl = new Mediator();
+  var uiCtrl = new Mediator();
 
-  (function(canvasCtrl) {
+  (function (canvasCtrl) {
     var overlays = $('#overlays');
     var selectionBox = common.utils.getElemFromTpl('#tpl--selection-box');
     var selectedPageCtn;
@@ -152,7 +153,20 @@
       pageEl.click(onCanvasPageClick);
       pageEl.click();
     }
+
+    function onRmItem() {
+      if (activeEl) {
+        activeEl.remove();
+        activeEl = null;
+      } else if (selectedPageCtn) {
+        selectedPageCtn.closest('.page').remove();
+        selectedPageCtn = null;
+      }
+      selectionBox.remove();
+    }
+
     canvasCtrl.subscribe('addPage', onAddPage);
+    canvasCtrl.subscribe('removeItem', onRmItem);
     canvasCtrl.subscribe('addRichTextEl', addRichTextEl);
 
     common.utils.makeElResizable('.page',
@@ -193,6 +207,8 @@
         selectionBox
           .width(elem.width())
           .height(elem.height());
+        elem.width(selectionBox.width());
+        elem.height(selectionBox.height());
       } else {
         x -= dx;
         y -= dy;
@@ -219,10 +235,14 @@
       if (active) {
         activeEl = elem.addClass('active');
         setWrapSelectionBox(elem);
+        if (activeEl.hasClass('text')) {
+          uiCtrl.publish('showHotTools', {action: true, type: 'text'});
+        }
       } else {
         elem.removeClass('active');
         activeEl = null;
         setWrapSelectionBox(elem, false);
+        uiCtrl.publish('showHotTools', {action: false});
       }
     }
 
@@ -262,6 +282,9 @@
      * @param {string} command - used to specifically create an element
      */
     function addRichTextEl(command) {
+      if (!selectedPageCtn) {
+        return;
+      }
       switch (command) {
         case common.commands.ADD_TEXT:
           addText();
@@ -272,7 +295,7 @@
     }
   })(canvasCtrl);
 
-  (function(canvasCtrl) {
+  (function (canvasCtrl) {
     var tbRichText = $('#tb--rich-text');
 
     /**
@@ -283,39 +306,16 @@
       var command = targetEl.attr('data-command');
       canvasCtrl.publish('addRichTextEl', command);
     }
+
     tbRichText.children().click(onTbRichTextClick);
   })(canvasCtrl);
 
-  (function(canvasCtrl) {
-    var mainHamburger = $('#main-hamburger');
-    var mainNavigation = $('#main-navigation');
-    var mainNavBar = $('#main-navbar');
-    var canvasPlayground = $('#canvas-playground');
+  (function (canvasCtrl) {
     var addPageBtn = $('#add-page');
     var canvasPages = $('#canvas-pages');
+    var rmItemBtn = $('#remove-item');
+    var hotTools = $('.hot-tools');
 
-    /** When navigation toggle button is clicked */
-    function onToggleSideNav() {
-      mainNavigation.add(mainHamburger).toggleClass('clicked');
-    }
-
-    /** Event handler on window resize */
-    function onWindowResize() {
-      var mainNavHeight = mainNavBar.height();
-      mainNavigation.css({top: mainNavHeight + 'px'})
-        .add(mainHamburger).removeClass('clicked');
-      canvasPlayground.css('margin-top', mainNavHeight + 'px');
-    }
-
-    /**
-     * Event handler for navigation items
-     * @param {Event} event - Get touched target from this event
-     * */
-    function onNavTouched(event) {
-      var targetEl = $(event.target);
-      mainNavigation.find('a').removeClass('active');
-      targetEl.addClass('active');
-    }
 
     /**
      * When right-bottom add-page button is clicked
@@ -330,11 +330,28 @@
       canvasCtrl.publish('addPage', pageEl);
     }
 
-    onWindowResize();
+    function onRmItemBtnClick() {
+      canvasCtrl.publish('removeItem');
+    }
 
-    mainHamburger.click(onToggleSideNav);
-    mainNavigation.click(onNavTouched);
-    $(window).on('resize', onWindowResize);
+    function showHotTools(options) {
+      options = options || {};
+      if (options.action) {
+        hotTools.filter('.'+options.type).addClass('show');
+      } else {
+        hotTools.removeClass('show');
+      }
+    }
+
+    function onHotToolsClick() {
+      var extraAgm;
+      var self = $(this);
+      var command = self.data('command');
+      document.execCommand(command, false, extraAgm);
+    }
+    uiCtrl.subscribe('showHotTools', showHotTools);
     addPageBtn.click(onAddPageBtnClick);
+    rmItemBtn.click(onRmItemBtnClick);
+    hotTools.children().click(onHotToolsClick);
   })(canvasCtrl);
 })();

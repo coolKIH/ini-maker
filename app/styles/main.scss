@@ -207,7 +207,7 @@ body {
   }
 }
 
-$selection-handle-size: 8px;
+$selection-handle-size: 10px;
 #overlays {
   top: 0;
   right: 0;
@@ -277,7 +277,6 @@ $selection-handle-size: 8px;
   }
   .element {
     z-index: 3;
-
     .inner {
       cursor: auto;
       height: 100%;

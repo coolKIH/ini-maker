@@ -31,8 +31,8 @@
         target.attr('data-x', x).attr('data-y', y);
       },
       updateSize: function (target, w, h) {
-        target.width(w);
-        target.height(h);
+        target.outerWidth(w);
+        target.outerHeight(h);
       },
       setCSSTransform2D: function (target, x, y) {
         target.css(
@@ -77,7 +77,7 @@
             if (options.action && options.action === 'resizeSelected') {
               self.updatePosition(target.siblings('.element'), x, y);
               self.updateSize(
-                target.siblings('.element'), target.width(), target.height()
+                target.siblings('.element'), target.outerWidth(), target.outerHeight()
               );
             }
           });
@@ -204,11 +204,8 @@
         elem.nextElem = elem.next('.element');
 
         overlays.append(selectionBox, elem);
-        selectionBox
-          .width(elem.width())
-          .height(elem.height());
-        elem.width(selectionBox.width());
-        elem.height(selectionBox.height());
+        common.utils.updateSize(selectionBox, elem.outerWidth(), elem.outerHeight());
+        common.utils.updateSize(elem, elem.outerWidth(), elem.outerHeight());
       } else {
         x -= dx;
         y -= dy;

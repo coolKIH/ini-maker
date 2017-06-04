@@ -1,6 +1,6 @@
 //@import url(//fonts.googleapis.com/earlyaccess/notosanssc.css);
 
-$ini-accent-color: #00b0df;
+$ini-accent-color: #00c4cc;
 $ini-primary-color: #efefef;
 $vip-black: #262626;
 $ini-primary-font-color: #262626;
@@ -9,7 +9,7 @@ $screen-sm-min: 768px;
 $screen-md-min: 992px;
 $screen-lg-min: 1200px;
 
-$body-bg-color: black;
+$body-bg-color: darken($ini-primary-color, 2);
 
 .color--white {
   color: white;
@@ -34,14 +34,11 @@ html {
   -webkit-box-sizing: inherit;
   -moz-box-sizing: inherit;
   box-sizing: inherit;
-
-  margin: 0;
-  padding: 0;
 }
 body {
-  font-family: 'Noto Sans SC', 'Roboto', 'Arial', 'Helvetica', sans-serif;
-  overflow-x: hidden;
-  overflow-y: auto;
+  font-family: 'Noto Sans CJK JP Light', 'Roboto', 'Arial', 'Helvetica', sans-serif;
+  overflow: auto;
+  background-color: $body-bg-color;
 }
 .v-align-placeholder {
   height: 100%;
@@ -49,9 +46,18 @@ body {
 }
 #main-header {
   background-color: $ini-primary-color;
-  #main-navbar {
-    line-height: 3em;
-    padding: 0 1em;
+  animation: slideFromTopShowHeader 180ms forwards;
+  transform: translate(0, -100%);
+  animation-delay: 600ms;
+  position: relative;
+  z-index: 59;
+  @keyframes slideFromTopShowHeader {
+    from {
+      transform: translate(0, -100%);
+    }
+    to {
+      transform: translate(0, 0);
+    }
   }
   a, ul {
     text-decoration: none;
@@ -63,10 +69,11 @@ body {
   }
   .brand-logo {
     a {
-      font-size: 2em;
+      font-size: 2.4em;
       font-weight: 700;
       text-decoration: underline;
       color: darken($ini-primary-color, 20);
+      font-family: 'Sailec Light', 'open sans', sans-serif;
     }
   }
   .hamburger {
@@ -119,34 +126,44 @@ body {
     }
   }
 }
+.location-sm-b {
+  top: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+@media all and (min-width: $screen-md-min) {
+  .location-md-lc {
+    top: 50%;
+    left: 0;
+    bottom: auto;
+    right: auto;
+    transform: translate(0, -50%);
+  }
+}
 #canvas-playground {
   position: relative;
-  padding: 2em 4em;
+  padding-top: 2em;
 
-  .toolbar {
+  #tb--main {
     position: fixed;
     z-index: 5;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    top: 50%;
-    left: 1em;
-    transform: translate(0, -50%);
-    background-color: $ini-primary-color;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-around;
-    width: 3em;
-    padding: 1.5em;
-    & > * {
-      display: inline-block;
-      vertical-align: middle;
-
-      &.command {
-        cursor: pointer;
-        font-size: 1.8em;
+    min-width: 6em;
+    .command {
+      cursor: pointer;
+      padding: 0.5em 1em;
+      width: 100%;
+      text-align: center;
+      &:hover {
+        background-color: $ini-accent-color;
+        color: white;
+      }
+      &:not(:last-child) {
+        border-bottom: 1px solid rgba(gray, 0.2);
       }
     }
   }
@@ -160,36 +177,64 @@ body {
     left: 0;
     cursor: pointer;
 
+    &.image {
+      width: 800px;
+    }
+
     .inner {
       outline: none;
-      ol, ul {
-        padding-left: 40px;
+      position: relative;
+      z-index: 1;
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+      height: 100%;
+      img {
+        width: 100%;
       }
     }
   }
   .page {
     position: absolute;
-    width: 80%;
     height: 800px;
-    left: 10%;
-    margin-bottom: 2em;
+    margin-bottom: 3em;
     background-color: white;
-    box-shadow: 0 0 0 1px $ini-primary-color;
+    transition: top 300ms;
+    width: 100%;
+    overflow: hidden;
+    @media all and (min-width: $screen-md-min) {
+      width: 80%;
+    }
+    &:hover .resize-handle {
+      visibility: visible;
+      opacity: 0.75;
+    }
+    &.selected {
+      box-shadow: none;
+    }
 
     .elements {
       position: absolute;
       height: 100%;
       width: 100%;
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
 
-      .element:hover:before {
+      .element:hover:before, .element.dragging:before {
         content: "";
         display: block;
         position: absolute;
-        top: 0;
+        top: -1px;
         right: 0;
         bottom: 0;
-        left: 0;
+        left: -1px;
+      }
+      .element:hover:before {
         border: 1px dashed rgba($vip-black, 0.25);
+      }
+      .element.dragging:before {
+        border: 1px dashed rgba($vip-black, 1);
       }
     }
     .resize-handle {
@@ -198,16 +243,21 @@ body {
       position: absolute;
       bottom: 0;
       right: 0;
-      cursor: nwse-resize;
-
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 300ms, opacity 300ms;
       polygon {
         fill: $ini-primary-font-color;
+        cursor: nwse-resize;
+        &:hover {
+          fill: $ini-accent-color;
+        }
       }
     }
   }
 }
 
-$selection-handle-size: 10px;
+$selection-handle-size: 8px;
 #overlays {
   top: 0;
   right: 0;
@@ -221,6 +271,8 @@ $selection-handle-size: 10px;
     height: 200px;
     position: absolute;
     border: 1px dashed black;
+    top: -1px;
+    left: -1px;
     z-index: 1;
 
     & > * {
@@ -229,47 +281,49 @@ $selection-handle-size: 10px;
       position: absolute;
       width: $selection-handle-size;
       height: $selection-handle-size;
-      background-color: $ini-primary-font-color;
-      border-radius: 20px;
+      background-color: rgba($ini-primary-font-color, 0.5);
       cursor: pointer;
+      &:hover {
+        background-color: rgba($ini-primary-font-color, 1);
+      }
     }
     .lt {
-      left: -$selection-handle-size/2;
-      top: -$selection-handle-size/2;
+      left: -$selection-handle-size;
+      top: -$selection-handle-size;
       cursor: nwse-resize;
     }
     .t {
-      top: -$selection-handle-size/2;
+      top: -$selection-handle-size;
       left: calc(50% - #{$selection-handle-size/2});
       cursor: ns-resize;
     }
     .rt {
-      right: -$selection-handle-size/2;
-      top: -$selection-handle-size/2;
+      right: -$selection-handle-size;
+      top: -$selection-handle-size;
       cursor: nesw-resize;
     }
     .r {
-      right: -$selection-handle-size/2;
+      right: -$selection-handle-size;
       top: calc(50% - #{$selection-handle-size/2});
       cursor: ew-resize;
     }
     .rb {
-      right: -$selection-handle-size/2;
-      bottom: -$selection-handle-size/2;
+      right: -$selection-handle-size;
+      bottom: -$selection-handle-size;
       cursor: nwse-resize;
     }
     .b {
-      bottom: -$selection-handle-size/2;
+      bottom: -$selection-handle-size;
       left: calc(50% - #{$selection-handle-size/2});
       cursor: ns-resize;
     }
     .lb {
-      bottom: -$selection-handle-size/2;
-      left: -$selection-handle-size/2;
+      bottom: -$selection-handle-size;
+      left: -$selection-handle-size;
       cursor: nesw-resize;
     }
     .l {
-      left: -$selection-handle-size/2;
+      left: -$selection-handle-size;
       top: calc(50% - #{$selection-handle-size/2});
       cursor: ew-resize;
     }
@@ -279,54 +333,27 @@ $selection-handle-size: 10px;
     z-index: 3;
     .inner {
       cursor: auto;
-      height: 100%;
     }
-  }
-}
-.rb-btns {
-  position: fixed;
-  bottom: 1em;
-  right: 1em;
-  background-color: $ini-primary-color;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  white-space: nowrap;
-  z-index: 100;
-  .button {
-    -webkit-box-sizing: content-box;
-    -moz-box-sizing: content-box;
-    box-sizing: content-box;
-    display: inline-block;
-    width: 50px;
-    height: 50px;
-    line-height: 50px;
-    text-align: center;
-    border-radius: 50px;
-    font-weight: bold;
-    font-size: 2em;
-    cursor: pointer;
   }
 }
 .hot-tools {
   position: fixed;
-  bottom: 1em;
-  background-color: $ini-primary-color;
-  height: 50px;
+  top: 1em;
+  min-height: 50px;
   display: none;
   justify-content: space-around;
   align-items: center;
+  flex-wrap: wrap;
   left: 50%;
   transform: translate(-50%, 0);
-  animation: slideFromBottomShow 300ms;
+  animation: slideFromTopShow 300ms;
+  z-index: 62;
 
-  > * {
-    margin: 0 0.5em;
+  button {
+    outline: none;
+    background-color: transparent;
+    border: 0;
     cursor: pointer;
-    &.clicked {
-      opacity: 0.6;
-    }
   }
 }
 .hot-tools.show {
@@ -341,4 +368,205 @@ $selection-handle-size: 10px;
     opacity: 1;
     transform: translate(-50%, 0);
   }
+}
+@keyframes slideFromTopShow {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -200%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+.pure-box {
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+.bg-white {
+  background-color: white;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+#tb--page-size {
+  input {
+    width: 5em;
+    padding: 0.2em;
+  }
+}
+.slidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 68;
+  overflow: auto;
+  box-shadow: 0 0 10px #333333;
+  transform: translate3d(-100%, 0, 0);
+  transition: transform 250ms;
+  &.show {
+    transform: translate3d(0, 0, 0);
+  }
+  .header {
+    background-color: $ini-accent-color;
+    height: 18%;
+  }
+  .close {
+    position: absolute;
+    right: 0.5em;
+    top: 0.2em;
+    color: white;
+    outline: none;
+  }
+  .content {
+    height: calc(82% - 40px);
+    overflow: auto;
+    background-color: #343434;
+    @keyframes imgItemAdded {
+      from {
+        transform: scale(0);
+      }
+      to {
+        transform: scale(1);
+      }
+    }
+    .img-item {
+      padding: 0.5em;
+      width: calc(100% / 3);
+      height: 100px;
+      position: relative;
+      //animation: imgItemAdded 500ms;
+      &:hover .options {
+        visibility: visible;
+        background-color: rgba(black, 0.3);
+        .option {
+          transform: translate(0, 0);
+        }
+      }
+      img {
+        width: 100%;
+      }
+      .options {
+        position: absolute;
+        transition: visibility 200ms, background-color 200ms;
+        display: flex;
+        visibility: hidden;
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-end;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: rgba(black, 0);
+        overflow: hidden;
+        .option {
+          transition: transform 200ms;
+          transform: translate(0, 100%);
+          outline: none;
+          border: 0;
+          background-color: rgba(black, 0.75);
+          color: white;
+          cursor: pointer;
+          margin: 0 0.2em;
+          padding: 0.3em 1em;
+        }
+      }
+    }
+  }
+  .footer {
+    height: 40px;
+    background-color: #242424;
+  }
+  a {
+    text-decoration: none;
+  }
+  .toggle {
+    background-color: $ini-accent-color;
+    color: white !important;
+    border: 1px solid white;
+    &.collapsed {
+      background-color: transparent;
+    }
+  }
+}
+#upload-img-btn {
+  border: 1px solid white;
+  outline: none;
+  width:4em;
+  background-color: $ini-accent-color;
+  color: white;
+  cursor: pointer;
+}
+.text-accent-color {
+  color: $ini-accent-color !important;
+}
+.bg-accent-color {
+  background-color: $ini-accent-color !important;
+}
+#color-platte {
+  .inner > * {
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    user-select: none;
+  }
+}
+@media all and (max-width: $screen-sm-min){
+  #export-html {
+    display: none;
+  }
+  #tb--page-size {
+    display: none;
+  }
+  .hot-tools {
+    width: 100%;
+    max-height: 80px;
+    overflow: auto;
+    top: 0;
+  }
+  .resize-handle {
+    display: none;
+  }
+  #canvas-playground {
+    padding: 0;
+  }
+  body {
+    overflow: hidden;
+  }
+  #add-page {
+    display: none;
+  }
+  #remove-item {
+    display: none;
+  }
+}
+input[type=date], input[type=number] {
+  width: auto;
+}
+#alignment-lines {
+  display: none;
+  svg {
+    position: absolute;
+    z-index: 200;
+    left: 0;
+    top: 0;
+    display: none;
+    &.v {
+      width: 1px;
+    }
+    &.h {
+      height: 1px;
+    }
+  }
+  &.show-v, &.show-v .v{
+    display: block;
+  }
+  &.show-h, &.show-h .h {
+    display: block;
+  }
+}
+.dropdown-item {
+  cursor: default;
 }

@@ -97,6 +97,7 @@
       makeElDraggable: function (selector, options) {
         options = options || {};
         var self = this;
+        console.log(selector, options)
         interact(selector, {
           context: options.context || document
         })
@@ -308,41 +309,41 @@
     common.utils.makeElDraggable('.selection-box', {
       action: 'moveSelected'
     });
-    common.utils.makeElDraggable('.element', {
-      context: '.elements',
-      onstart: function (event) {
-        alLines.appendTo(selectedPageCtn.closest('.page'));
-      },
-      onmove: function (event) {
-        // var target = $(event.target);
-        // var offsetCenter = common.utils.getElOffsetCenter(target);
-        // common.utils.updatePosition(alLines.children('.v'), offsetCenter.cx, 0);
-        // common.utils.updatePosition(alLines.children('.h'), 0, offsetCenter.cy);
-        // var hasH = false, hasV = false;
-        // target.siblings('.element').each(function () {
-        //   var siblingOC = common.utils.getElOffsetCenter($(this));
-        //   if (Math.abs(siblingOC.cx - offsetCenter.cx) < 1) {
-        //     hasV = true;
-        //   }
-        //   if (Math.abs(siblingOC.cy - offsetCenter.cy) < 1) {
-        //     hasH = true;
-        //   }
-        // });
-        // if (hasH) {
-        //   alLines.addClass('show-h');
-        // } else {
-        //   alLines.removeClass('show-h');
-        // }
-        // if (hasV) {
-        //   alLines.addClass('show-v');
-        // } else {
-        //   alLines.removeClass('show-v');
-        // }
-      },
-      onend: function (event) {
-        alLines.remove();
-      }
-    });
+    // common.utils.makeElDraggable('.element', {
+    //   context: '.elements',
+    //   // onstart: function (event) {
+    //   //   // alLines.appendTo(selectedPageCtn.closest('.page'));
+    //   // },
+    //   // onmove: function (event) {
+    //   //   // var target = $(event.target);
+    //   //   // var offsetCenter = common.utils.getElOffsetCenter(target);
+    //   //   // common.utils.updatePosition(alLines.children('.v'), offsetCenter.cx, 0);
+    //   //   // common.utils.updatePosition(alLines.children('.h'), 0, offsetCenter.cy);
+    //   //   // var hasH = false, hasV = false;
+    //   //   // target.siblings('.element').each(function () {
+    //   //   //   var siblingOC = common.utils.getElOffsetCenter($(this));
+    //   //   //   if (Math.abs(siblingOC.cx - offsetCenter.cx) < 1) {
+    //   //   //     hasV = true;
+    //   //   //   }
+    //   //   //   if (Math.abs(siblingOC.cy - offsetCenter.cy) < 1) {
+    //   //   //     hasH = true;
+    //   //   //   }
+    //   //   // });
+    //   //   // if (hasH) {
+    //   //   //   alLines.addClass('show-h');
+    //   //   // } else {
+    //   //   //   alLines.removeClass('show-h');
+    //   //   // }
+    //   //   // if (hasV) {
+    //   //   //   alLines.addClass('show-v');
+    //   //   // } else {
+    //   //   //   alLines.removeClass('show-v');
+    //   //   // }
+    //   // },
+    //   // onend: function (event) {
+    //   //   // alLines.remove();
+    //   // }
+    // });
 
     /**
      * When an element is focused/blur, show/hide the selection box
@@ -424,6 +425,9 @@
       var node = $(document.createElement('div'));
       var innerNode = $(document.createElement(nodeName)).addClass('inner');
       node.append(innerNode);
+      common.utils.makeElDraggable('.element', {
+        context: selectedPageCtn.get(0)
+      });
       return node.css(cssOptions || {}).addClass('element');
     }
 

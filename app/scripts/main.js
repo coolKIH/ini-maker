@@ -291,14 +291,14 @@
 
     common.utils.makeElResizable('.page',
       {right: '.resize-handle', bottom: '.resize-handle'});
-    common.utils.makeElResizable('.selection-box.text', {
+    common.utils.makeElResizable('.selection-box.text, .selection-box.form', {
       top: '.t, .lt, .rt',
       right: '.r, .rt, .rb',
       bottom: '.b, .lb, .rb',
       left: '.l, .lt, .lb',
       action: 'resizeSelected'
     });
-    common.utils.makeElResizable('.selection-box.image, .selection-box.form', {
+    common.utils.makeElResizable('.selection-box.image', {
       preserveAspectRatio: true,
       top: '.t, .lt, .rt',
       right: '.r, .rt, .rb',
@@ -609,31 +609,58 @@
     }
 
     function installPickers() {
-      var options = {
-        valueElement: null,
-        width: 300,
-        height: 120,
-        sliderSize: 20,
-        position: 'top',
-        borderColor: '#CCC',
-        insetColor: '#CCC',
-        backgroundColor: '#00c4cc'
-      };
+      bindColorPicker('#fgcolor-button', '#000000', function (color) {
+        document.execCommand('foreColor', false, color.toHexString());
+      });
+      bindColorPicker('#bgcolor-button', '#ffffff', function (color) {
+        document.execCommand('backColor', false, color.toHexString());
+      });
+      bindColorPicker('#add-color-fp', '#780fa8', function (color) {
+        appendColorPlatte(color.toHexString());
+      });
+    }
 
-      var pickers = {};
-      pickers.fgcolor = new jscolor('fgcolor-button', options);
-      pickers.fgcolor.onFineChange = function () {
-        var self = this;
-        document.execCommand('foreColor', false, self.toHEXString());
-      };
-      pickers.fgcolor.fromString('#000000');
+    function bindColorPicker(selector, setupColor, cb) {
+      $(selector).spectrum({
+        color: setupColor,
+        showInput: true,
+        className: "full-spectrum",
+        showInitial: true,
+        showPalette: true,
+        showSelectionPalette: true,
+        maxSelectionSize: 10,
+        preferredFormat: "hex",
+        localStorageKey: "spectrum.demo",
+        move: function (color) {
 
-      pickers.bgcolor = new jscolor('bgcolor-button', options);
-      pickers.bgcolor.onFineChange = function () {
-        var self = this;
-        document.execCommand('backColor', false, self.toHEXString());
-      };
-      pickers.bgcolor.fromString('#ffffff');
+        },
+        show: function () {
+
+        },
+        beforeShow: function () {
+
+        },
+        hide: function () {
+
+        },
+        change: cb,
+        palette: [
+          ["rgb(0, 0, 0)", "rgb(67, 67, 67)", "rgb(102, 102, 102)",
+            "rgb(204, 204, 204)", "rgb(217, 217, 217)","rgb(255, 255, 255)"],
+          ["rgb(152, 0, 0)", "rgb(255, 0, 0)", "rgb(255, 153, 0)", "rgb(255, 255, 0)", "rgb(0, 255, 0)",
+            "rgb(0, 255, 255)", "rgb(74, 134, 232)", "rgb(0, 0, 255)", "rgb(153, 0, 255)", "rgb(255, 0, 255)"],
+          ["rgb(230, 184, 175)", "rgb(244, 204, 204)", "rgb(252, 229, 205)", "rgb(255, 242, 204)", "rgb(217, 234, 211)",
+            "rgb(208, 224, 227)", "rgb(201, 218, 248)", "rgb(207, 226, 243)", "rgb(217, 210, 233)", "rgb(234, 209, 220)",
+            "rgb(221, 126, 107)", "rgb(234, 153, 153)", "rgb(249, 203, 156)", "rgb(255, 229, 153)", "rgb(182, 215, 168)",
+            "rgb(162, 196, 201)", "rgb(164, 194, 244)", "rgb(159, 197, 232)", "rgb(180, 167, 214)", "rgb(213, 166, 189)",
+            "rgb(204, 65, 37)", "rgb(224, 102, 102)", "rgb(246, 178, 107)", "rgb(255, 217, 102)", "rgb(147, 196, 125)",
+            "rgb(118, 165, 175)", "rgb(109, 158, 235)", "rgb(111, 168, 220)", "rgb(142, 124, 195)", "rgb(194, 123, 160)",
+            "rgb(166, 28, 0)", "rgb(204, 0, 0)", "rgb(230, 145, 56)", "rgb(241, 194, 50)", "rgb(106, 168, 79)",
+            "rgb(69, 129, 142)", "rgb(60, 120, 216)", "rgb(61, 133, 198)", "rgb(103, 78, 167)", "rgb(166, 77, 121)",
+            "rgb(91, 15, 0)", "rgb(102, 0, 0)", "rgb(120, 63, 4)", "rgb(127, 96, 0)", "rgb(39, 78, 19)",
+            "rgb(12, 52, 61)", "rgb(28, 69, 135)", "rgb(7, 55, 99)", "rgb(32, 18, 77)", "rgb(76, 17, 48)"]
+        ]
+      });
     }
 
     function changePageSize() {
@@ -662,17 +689,25 @@
     }
 
     function loadColorPlatte() {
-      var tpl = $('#tpl--color-platte').html();
       var colors = ['#2d0921', '#c5c159', '#ffc0cb', '#012d5a', '#ad0725', '#913053', '#59112c',
         '#37a2b2', '#99ffdd', '#aaf1be', '#000000', '##f97508', '#66217e', '#ffe5fc', '#e5d0d7', '#beffab', '#abbeff', '#c2abff'];
       var len = colors.length;
       for (var i = 0; i < len; i++) {
-        $(tpl.replaceAll('{{color-code}}', colors[i])).insertBefore(addColorBtn);
+        appendColorPlatte(colors[i]);
       }
     }
 
-    function loadSpecialImages() {
+    function appendColorPlatte(color) {
+      var tpl = $('#tpl--color-platte').html();
+      $(tpl.replaceAll('{{color-code}}', color)).insertBefore(addColorBtn);
+    }
+
+    function appendSpecialImage(imgSrc) {
       var tpl = $('#tpl--lib-img-item').html();
+      imgLib.find('#special-bg-images .inner').append(tpl.replaceAll('{{img-src}}', imgSrc));
+    }
+
+    function loadSpecialImages() {
       var images = [
         'https://static.vecteezy.com/system/resources/previews/000/101/241/non_2x/free-abstract-background-4-vector.jpg',
         'https://shorthand.com/the-craft/editing-tricks-using-picmonkey-to-add-filters-layers-to-images/media/sunflowers-mr.jpg',
@@ -692,7 +727,7 @@
         var img = new Image();
         img.src = images[i];
         img.onload = function () {
-          imgLib.find('#special-bg-images .inner').append(tpl.replaceAll('{{img-src}}', this.src));
+          appendSpecialImage(this.src);
         };
         img.onerror = function () {
           console.log('img load error for ', this.src);
@@ -711,6 +746,8 @@
         }
       } else if (target.is('.color-brick')) {
         canvasCtrl.publish('changeBgColor', target.data('colorCode'));
+      } else if (target.is('#add-color-fp')) {
+
       }
     }
 
@@ -783,21 +820,21 @@
         // define the elements of the menu
         items: {
           sendUpward: {
-            name: "往上一层", className: 'dropdown-item', callback: function (key, opt) {
+            name: "往上一层", className: 'dropdown-item', callback: function (key) {
               if (this.next('.element').length) {
                 this.insertAfter(this.next('.element'));
               }
             }
           },
           sendDownward: {
-            name: "往下一层", className: 'dropdown-item', callback: function (key, opt) {
+            name: "往下一层", className: 'dropdown-item', callback: function (key) {
               if (this.prev('.element')) {
                 this.insertBefore(this.prev('.element'));
               }
             }
           },
           removeItem: {
-            name: "移除", className: 'dropdown-item', callback: function (key, opt) {
+            name: "移除", className: 'dropdown-item', callback: function (key) {
               canvasCtrl.publish('removeItem', this);
             }
           }
@@ -811,6 +848,16 @@
       document.addEventListener('mouseup', function () {
         document.documentElement.style.cursor = 'auto'
       }, false);
+    }
+
+    function onUpImgFieldChange() {
+      var files = this.files;
+      var i;
+      var fileNum = files.length;
+      console.log(fileNum)
+      for (i = 0; i < fileNum; i++) {
+        appendSpecialImage(window.URL.createObjectURL(files[i]));
+      }
     }
 
     uiCtrl.subscribe('showHotTools', showHotTools);
@@ -827,5 +874,6 @@
     fbContainer.on('shown.bs.modal', initializeFormBuilder).on('click', onFBContainerClick);
     initializeCtxMenu();
     bugFixes();
+    $('#upload-img-field').on('change', onUpImgFieldChange);
   })(canvasCtrl);
 })();

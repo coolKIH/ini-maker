@@ -16,7 +16,8 @@
 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
         integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css" integrity="sha256-f83N12sqX/GO43Y7vXNt9MjrHkPc4yi9Uq9cLy1wGIU=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
   <link rel="stylesheet" href="styles/main.css">
   <!-- Color the status bar on mobile devices -->
   <meta name="theme-color" content="#efefef">
@@ -63,6 +64,9 @@
     <div id="overlays"></div>
   </section>
   <section class="hot-tools text p-2 pure-box">
+    <button type="button" class="close close-btn" aria-label="Close" onclick="$(this).closest('.hot-tools').removeClass('show');">
+      <span aria-hidden="true">&times;</span>
+    </button>
     <div class="dropdown">
       <button class="btn btn-secondary dropdown-toggle" id="fontName-dropMenu" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
@@ -173,7 +177,8 @@
       </div>
     </article>
     <footer class="footer d-flex justify-content-center align-items-center">
-      <button type="button" id="upload-img-btn" class=""><strong>&#8673;</strong></button>
+      <button type="button" id="upload-img-btn" onclick="$('#upload-img-field').get(0).click();"><strong>&#8673;</strong></button>
+      <input name="input-images" multiple type="file" id="upload-img-field" accept="image/png, image/jpeg, image/gif" style="display: none;">
     </footer>
   </aside>
   <aside id="popular-components" class="slidebar col-sm-12 col-md-3 px-0">
@@ -262,9 +267,9 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
         integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
         crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.0.4/jscolor.js"
-        integrity="sha256-y1h79SSb3icyBC/BrLCzoexQZAOGwlvoAr85biY4QGw=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js" integrity="sha256-ZdnRjhC/+YiBbXTHIuJdpf7u6Jh5D2wD5y0SNRWDREQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/i18n/jquery.spectrum-zh-cn.min.js" integrity="sha256-5h6mrxuAFBt3/7HKsDkxz/q9NHnJlzdHKfvFdSlg/k0=" crossorigin="anonymous"></script>
 <script src="https://formbuilder.online/assets/js/form-builder.min.js"></script>
 <script src="https://formbuilder.online/assets/js/form-render.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.5.0/jquery.ui.position.min.js"

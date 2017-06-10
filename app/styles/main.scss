@@ -349,6 +349,15 @@ $selection-handle-size: 8px;
   animation: slideFromTopShow 300ms;
   z-index: 62;
 
+  .close {
+    position: absolute;
+    right: -1.8em;
+    top: 40%;
+    padding: 0.2em;
+    border-radius: 50px;
+    background-color: white;
+    font-size: 1.2em;
+  }
   button {
     outline: none;
     background-color: transparent;

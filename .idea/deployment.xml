@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="ubuntu-remote" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu-remote" autoUploadExternalChanges="true">
     <serverData>
+      <paths name="imgs-stack">
+        <serverdata>
+          <mappings>
+            <mapping deploy="images" local="$PROJECT_DIR$/app/images" web="/images" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="ubuntu-remote">
         <serverdata>
           <mappings>
@@ -10,5 +17,6 @@
         </serverdata>
       </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>

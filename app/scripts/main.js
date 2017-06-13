@@ -30,12 +30,13 @@
       ADD_IMG: 'add-img',
       ADD_COLOR: 'add-color',
       ADD_FORM: 'add-form',
+      ADD_COMP: 'add-comp',
     },
     utils: {
       getElOffsetCenter: function (target) {
         return {
-          cx: ~~(target.attr('data-x') || 0) + target.outerWidth()/2,
-          cy: ~~(target.attr('data-y') || 0) + target.outerHeight()/2
+          cx: ~~(target.attr('data-x') || 0) + target.outerWidth() / 2,
+          cy: ~~(target.attr('data-y') || 0) + target.outerHeight() / 2
         }
       },
       updatePosition: function (target, x, y) {
@@ -97,7 +98,6 @@
       makeElDraggable: function (selector, options) {
         options = options || {};
         var self = this;
-        console.log(selector, options)
         interact(selector, {
           context: options.context || document
         })
@@ -117,12 +117,11 @@
               var y = parseFloat(target.attr('data-y') || 0) + event.dy;
 
               self.updatePosition(target, x, y);
-
-              if (options.action && options.action === 'moveSelected') {
-                self.updatePosition(target.siblings('.element'), x, y);
-              }
               if ('onmove' in options) {
                 options['onmove'](event);
+              }
+              if (options.action && options.action === 'moveSelected') {
+                self.updatePosition(target.siblings('.element'), parseFloat(target.attr('data-x') || 0), parseFloat(target.attr('data-y') || 0));
               }
             },
             onend: function (event) {
@@ -228,8 +227,10 @@
           page.width(page.width()).height(page.height());
         }
       }
+      var left = ($('#canvas-pages').outerWidth() - page.width()) / 2;
+      left = left > 0 ? left : 0;
       page.css({
-        left: (window.innerWidth - page.width()) / 2
+        left: left
       });
     }
 
@@ -278,15 +279,25 @@
       }
     }
 
+    function blurActiveEl() {
+      if (activeEl) {
+        setElActive(activeEl, false);
+      }
+    }
+
     canvasCtrl.subscribe('addPage', onAddPage);
     canvasCtrl.subscribe('removeItem', onRmItem);
     canvasCtrl.subscribe('addNewItem', addNewItem);
     canvasCtrl.subscribe('changePageSize', onChangePageSize);
     canvasCtrl.subscribe('changeBg', changeBg);
     canvasCtrl.subscribe('changeBgColor', changeBgColor);
+    canvasCtrl.subscribe('blurActiveEl', blurActiveEl);
 
     canvasCtrl.getActiveEl = function () {
       return activeEl;
+    };
+    canvasCtrl.getSelectedPageCtn = function () {
+      return selectedPageCtn;
     };
 
     common.utils.makeElResizable('.page',
@@ -307,7 +318,57 @@
       action: 'resizeSelected'
     });
     common.utils.makeElDraggable('.selection-box', {
-      action: 'moveSelected'
+      action: 'moveSelected',
+      onstart: function (event) {
+        alLines.appendTo(selectedPageCtn.closest('.page'));
+      },
+      onmove: function (event) {
+        var target = $(event.target);
+        var offsetCenter = common.utils.getElOffsetCenter(target);
+        var pagePos = selectedPageCtn.closest('.page').position();
+        var dx = pagePos.left;
+        var dy = pagePos.top;
+        offsetCenter.cx -= dx;
+        offsetCenter.cy -= dy;
+        var hasH = false, hasV = false;
+        selectedPageCtn.find('.element').each(function () {
+          var siblingOC = common.utils.getElOffsetCenter($(this));
+          if (Math.abs(siblingOC.cx - offsetCenter.cx) <= 2) {
+            hasV = true;
+            common.utils.updatePosition(alLines.children('.v'), siblingOC.cx, 0);
+            offsetCenter.cx = siblingOC.cx;
+          }
+          if (Math.abs(siblingOC.cy - offsetCenter.cy) <= 2) {
+            hasH = true;
+            common.utils.updatePosition(alLines.children('.h'), 0, siblingOC.cy);
+            offsetCenter.cy = siblingOC.cy;
+          }
+        });
+        if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth()/2) <= 2) {
+          hasV = true;
+          common.utils.updatePosition(alLines.children('.v'), selectedPageCtn.outerWidth()/2, 0);
+          offsetCenter.cx = selectedPageCtn.outerWidth()/2;
+        }
+        if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight()/2) <= 2) {
+          hasH = true;
+          common.utils.updatePosition(alLines.children('.h'), 0, selectedPageCtn.outerHeight()/2);
+          offsetCenter.cy = selectedPageCtn.outerHeight()/2;
+        }
+        common.utils.updatePosition(target, offsetCenter.cx + dx - target.outerWidth()/2, offsetCenter.cy + dy - target.outerHeight()/2);
+        if (hasH) {
+          alLines.addClass('show-h').children('.h').attr('width', selectedPageCtn.outerWidth() + 'px');
+        } else {
+          alLines.removeClass('show-h');
+        }
+        if (hasV) {
+          alLines.addClass('show-v').children('.v').attr('height', selectedPageCtn.outerHeight() + 'px');
+        } else {
+          alLines.removeClass('show-v');
+        }
+      },
+      onend: function (event) {
+        alLines.remove().removeClass('show-h show-v');
+      }
     });
     // common.utils.makeElDraggable('.element', {
     //   context: '.elements',
@@ -396,22 +457,18 @@
       elem = $(elem);
       if (active) {
         activeEl = elem.addClass('active');
-        setWrapSelectionBox(elem);
+        setWrapSelectionBox(activeEl);
         if (activeEl.hasClass('text')) {
-          uiCtrl.publish('showHotTools', {action: true, type: 'text'});
+          common.utils.setCtnEditable(activeEl, true);
+          elem.find('.inner').focus();
         }
-        if (activeEl.hasClass('image')) {
-          uiCtrl.publish('showHotTools', {action: true, type: 'image'});
-        }
+        uiCtrl.publish('showHotTools', {action: true, type: activeEl.data('type')});
       } else {
-        elem.removeClass('active');
+        activeEl.removeClass('active');
+        setWrapSelectionBox(activeEl, false);
+        common.utils.setCtnEditable(activeEl, false);
         activeEl = null;
-        setWrapSelectionBox(elem, false);
         uiCtrl.publish('showHotTools', {action: false});
-      }
-      common.utils.setCtnEditable(elem, active);
-      if (active) {
-        elem.find('.inner').focus();
       }
     }
 
@@ -426,7 +483,52 @@
       var innerNode = $(document.createElement(nodeName)).addClass('inner');
       node.append(innerNode);
       common.utils.makeElDraggable('.element', {
-        context: selectedPageCtn.get(0)
+        context: selectedPageCtn.get(0),
+        onstart: function (event) {
+          alLines.appendTo(selectedPageCtn.closest('.page'));
+        },
+        onmove: function (event) {
+          var target = $(event.target);
+          var offsetCenter = common.utils.getElOffsetCenter(target);
+          var hasH = false, hasV = false;
+          target.siblings('.element').each(function () {
+            var siblingOC = common.utils.getElOffsetCenter($(this));
+            if (Math.abs(siblingOC.cx - offsetCenter.cx) <= 2) {
+              hasV = true;
+              common.utils.updatePosition(alLines.children('.v'), siblingOC.cx, 0);
+              offsetCenter.cx = siblingOC.cx;
+            }
+            if (Math.abs(siblingOC.cy - offsetCenter.cy) <= 2) {
+              hasH = true;
+              common.utils.updatePosition(alLines.children('.h'), 0, siblingOC.cy);
+              offsetCenter.cy = siblingOC.cy;
+            }
+          });
+          if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth()/2) <= 2) {
+            hasV = true;
+            common.utils.updatePosition(alLines.children('.v'), selectedPageCtn.outerWidth()/2, 0);
+            offsetCenter.cx = selectedPageCtn.outerWidth() / 2;
+          }
+          if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight()/2) <= 2) {
+            hasH = true;
+            common.utils.updatePosition(alLines.children('.h'), 0, selectedPageCtn.outerHeight()/2);
+            offsetCenter.cy = selectedPageCtn.outerHeight() / 2;
+          }
+          common.utils.updatePosition(target, offsetCenter.cx - target.outerWidth()/2, offsetCenter.cy - target.outerHeight()/2);
+          if (hasH) {
+            alLines.addClass('show-h').children('.h').attr('width', selectedPageCtn.outerWidth() + 'px');
+          } else {
+            alLines.removeClass('show-h');
+          }
+          if (hasV) {
+            alLines.addClass('show-v').children('.v').attr('height', selectedPageCtn.outerHeight() + 'px');
+          } else {
+            alLines.removeClass('show-v');
+          }
+        },
+        onend: function (event) {
+          alLines.remove().removeClass('show-h show-v');
+        }
       });
       return node.css(cssOptions || {}).addClass('element');
     }
@@ -436,7 +538,7 @@
      */
     function addText() {
       var textNode = createNode('div');
-      textNode.addClass('text').data('type', 'text').find('.inner').text('请输入文本内容');
+      textNode.addClass('text').data('type', 'text').find('.inner').text('ini canvas canvas ini');
       if (activeEl) {
         setElActive(activeEl, false);
       }
@@ -463,6 +565,18 @@
       setElActive(formNode, true);
     }
 
+    function addComp(args) {
+      if (activeEl) {
+        setElActive(activeEl, false);
+      }
+      args = args || {};
+      var htm = args.html;
+      var type = args.type;
+      var compNode = createNode('div');
+      compNode.addClass(type).data('type', type).find('.inner').append(htm);
+      setElActive(compNode, true);
+    }
+
     /**
      * Create any rich text element like text, pictures, etc
      * @param {string} command - used to specifically create an element
@@ -481,6 +595,9 @@
           break;
         case common.commands.ADD_FORM:
           addForm(extra);
+          break;
+        case common.commands.ADD_COMP:
+          addComp(extra);
           break;
         default:
           break;
@@ -503,14 +620,23 @@
       }
       var toggleId = targetEl.attr('data-toggle-id');
       if (toggleId) {
-        $('#' + toggleId).toggleClass('show');
+        var target = $('#' + toggleId).toggleClass('show');
+        target.siblings('.slidebar').removeClass('show');
+        if (target.hasClass('show')) {
+          $(document.body).addClass('slidebar-open');
+        } else {
+          $(document.body).removeClass('slidebar-open');
+        }
         uiCtrl.publish('load-' + toggleId);
+        canvasCtrl.publish('changePageSize');
       }
     }
 
     tbMain.children().click(onMainTbItemClick);
     closeBtn.click(function () {
       $(this).closest('.slidebar').removeClass('show');
+      $(document.body).removeClass('slidebar-open');
+      canvasCtrl.publish('changePageSize');
     });
   })(canvasCtrl);
 
@@ -528,6 +654,7 @@
     var doExpOpts = $('#do-export-options');
     var fb;
     var fbContainer = $('#form-builder-container');
+    var compStore = $('#popular-components');
 
     /**
      * When right-bottom add-page button is clicked
@@ -551,9 +678,9 @@
 
     function showHotTools(options) {
       options = options || {};
+      console.log(options);
       if (options.action) {
-        // hotTools.filter('.'+options.type).addClass('show');
-        hotTools.addClass('show');
+        hotTools.filter('.'+options.type).addClass('show');
       } else {
         hotTools.removeClass('show');
       }
@@ -593,7 +720,7 @@
         var ff = $('font[size]');
         var canvasActiveEl = canvasCtrl.getActiveEl();
         if (ff.length) {
-          ff.css('font-size', currentFontSize + 'px').removeAttr('size');
+          ff.css('font-size', currentFontSize + 'px').removeAttr('size').css('line-height', '1em');
         } else {
           if (canvasActiveEl) {
             var innerEl = canvasActiveEl.find('.inner').get(0);
@@ -646,7 +773,7 @@
         change: cb,
         palette: [
           ["rgb(0, 0, 0)", "rgb(67, 67, 67)", "rgb(102, 102, 102)",
-            "rgb(204, 204, 204)", "rgb(217, 217, 217)","rgb(255, 255, 255)"],
+            "rgb(204, 204, 204)", "rgb(217, 217, 217)", "rgb(255, 255, 255)"],
           ["rgb(152, 0, 0)", "rgb(255, 0, 0)", "rgb(255, 153, 0)", "rgb(255, 255, 0)", "rgb(0, 255, 0)",
             "rgb(0, 255, 255)", "rgb(74, 134, 232)", "rgb(0, 0, 255)", "rgb(153, 0, 255)", "rgb(255, 0, 255)"],
           ["rgb(230, 184, 175)", "rgb(244, 204, 204)", "rgb(252, 229, 205)", "rgb(255, 242, 204)", "rgb(217, 234, 211)",
@@ -676,7 +803,7 @@
     }
 
     function updatePageSizeMd(width, height) {
-      pageSizeMd.find('.page-width').val(width).end().find('.page-height').val(height);
+      pageSizeMd.find('.page-width').val(width).end().find('.page-height').val(height).end().find('.mdl-textfield').addClass('is-dirty');
     }
 
     function loadImgLib() {
@@ -710,17 +837,18 @@
     function loadSpecialImages() {
       var images = [
         'https://static.vecteezy.com/system/resources/previews/000/101/241/non_2x/free-abstract-background-4-vector.jpg',
-        'https://shorthand.com/the-craft/editing-tricks-using-picmonkey-to-add-filters-layers-to-images/media/sunflowers-mr.jpg',
         'https://static.pexels.com/photos/5836/yellow-metal-design-decoration.jpg',
         'http://desk.fd.zol-img.com.cn/t_s960x600c5/g5/M00/02/0A/ChMkJlbKz3qIZf6CAAMnlgwlzEQAALJVgNT65cAAyeu011.jpg',
         'http://img3.xiazaizhijia.com/walls/20161209/1920x1080_e33062551f5890f.jpg',
         'http://4493bz.1985t.com/uploads/allimg/141014/3-141014100632.jpg',
         'http://4493bz.1985t.com/uploads/allimg/150722/1-150H2142Q0.jpg',
         'http://pic1.win4000.com/wallpaper/1/50445a0a38168.jpg',
-        'https://cdn.pixabay.com/photo/2013/11/08/22/06/sun-207593_960_720.jpg',
         'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQ2KswMQFXWbBRveCUXt0frPjK3OKhNIaDwbsRf_0xPdyVBPr46g',
         'http://www.wmpic.me/wp-content/uploads/2013/12/20131225172517256.jpg',
         'http://4493bz.1985t.com/uploads/allimg/150127/4-15012G02139.jpg',
+        'images/comp_zard_purple.jpg',
+        'images/comp_zard_smile.png',
+        'images/comp_zard_smile_wide.jpg',
       ];
       var imgNum = images.length;
       for (var i = 0; i < imgNum; i++) {
@@ -779,9 +907,9 @@
     function onFBContainerClick(event) {
       var target = $(event.target);
       if (fb && fb.actions && fb.actions.getData) {
-        if (target.is('.clear')) {
+        if (target.closest('.clear').length) {
           fb.actions.clearFields();
-        } else if (target.is('.submit')) {
+        } else if (target.closest('.submit').length) {
           var rndHTML = getRenderedHTML(fb.actions.getData('xml')) || '';
           if (!rndHTML) {
             // TODO: remind user to add some fields
@@ -815,6 +943,17 @@
 
     function initializeCtxMenu() {
       $.contextMenu({
+        selector: '#overlays .element',
+        items: {
+          OK: {
+            name: "确定", className: 'dropdown-item', callback: function () {
+              canvasCtrl.publish('blurActiveEl');
+            }
+          }
+        },
+        className: 'dropdown-menu'
+      });
+      $.contextMenu({
         // define which elements trigger this menu
         selector: ".elements .element",
         // define the elements of the menu
@@ -833,6 +972,21 @@
               }
             }
           },
+          sendTop: {
+            name: "移向顶层", className: 'dropdown-item', callback: function (key) {
+              this.closest('.elements').append(this);
+            }
+          },
+          sendBottom: {
+            name: "移向底部", className: 'dropdown-item', callback: function (key) {
+              this.closest('.elements').prepend(this);
+            }
+          },
+          clone: {
+            name: "复制", className: 'dropdown-item', callback: function (key) {
+              this.clone().removeClass('context-menu-active').insertAfter(this);
+            }
+          },
           removeItem: {
             name: "移除", className: 'dropdown-item', callback: function (key) {
               canvasCtrl.publish('removeItem', this);
@@ -848,15 +1002,27 @@
       document.addEventListener('mouseup', function () {
         document.documentElement.style.cursor = 'auto'
       }, false);
+      window.addEventListener('resize', function () {
+        canvasCtrl.publish('changePageSize');
+      });
     }
 
     function onUpImgFieldChange() {
       var files = this.files;
       var i;
       var fileNum = files.length;
-      console.log(fileNum)
       for (i = 0; i < fileNum; i++) {
         appendSpecialImage(window.URL.createObjectURL(files[i]));
+      }
+    }
+
+    function onCompStoreClick(event) {
+      var target = $(event.target);
+      var component = target.closest('.component');
+      if (component.length) {
+        var comp = component.data('component');
+        var htm = $('#tpl--'+comp).html();
+        canvasCtrl.publish('addNewItem', common.commands.ADD_COMP, {html: htm, type: comp});
       }
     }
 
@@ -865,15 +1031,16 @@
     uiCtrl.subscribe('load-image-lib', loadImgLib);
     addPageBtn.click(onAddPageBtnClick);
     rmItemBtn.click(onRmItemBtnClick);
-    hotTools.find('button').click(onHotToolsClick);
+    hotTools.find('button, .mdl-menu__item').click(onHotToolsClick);
     pageSizeMd.on('keyup', onPageSizeMdKeyup);
     imgLib.on('click', onImgLibClick);
+    compStore.on('click', onCompStoreClick);
     installPickers();
     doExpOpts.click(onExpOptsClick);
-    setTimeout(loadImgLib, 100);
     fbContainer.on('shown.bs.modal', initializeFormBuilder).on('click', onFBContainerClick);
     initializeCtxMenu();
     bugFixes();
     $('#upload-img-field').on('change', onUpImgFieldChange);
+    loadImgLib();
   })(canvasCtrl);
 })();

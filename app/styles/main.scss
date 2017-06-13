@@ -1,7 +1,5 @@
-//@import url(//fonts.googleapis.com/earlyaccess/notosanssc.css);
-
-$ini-accent-color: #00c4cc;
-$ini-primary-color: #efefef;
+$ini-accent-color: rgb(121,85,72);
+$ini-primary-color: #eee9db;
 $vip-black: #262626;
 $ini-primary-font-color: #262626;
 
@@ -9,7 +7,7 @@ $screen-sm-min: 768px;
 $screen-md-min: 992px;
 $screen-lg-min: 1200px;
 
-$body-bg-color: darken($ini-primary-color, 2);
+$body-bg-color: lighten($ini-primary-color, 2);
 
 .color--white {
   color: white;
@@ -39,6 +37,11 @@ body {
   font-family: 'Noto Sans CJK JP Light', 'Roboto', 'Arial', 'Helvetica', sans-serif;
   overflow: auto;
   background-color: $body-bg-color;
+  //@media all and (min-width: $screen-md-min) {
+  //  &.slidebar-open #canvas-pages {
+  //    margin-left: 25%;
+  //  }
+  //}
 }
 .v-align-placeholder {
   height: 100%;
@@ -46,11 +49,10 @@ body {
 }
 #main-header {
   background-color: $ini-primary-color;
-  animation: slideFromTopShowHeader 180ms forwards;
-  transform: translate(0, -100%);
-  animation-delay: 600ms;
   position: relative;
   z-index: 59;
+  font-family: 'Gloria Hallelujah', cursive;
+  padding: 0 3em;
   @keyframes slideFromTopShowHeader {
     from {
       transform: translate(0, -100%);
@@ -68,12 +70,21 @@ body {
     margin: 0;
   }
   .brand-logo {
+    position: relative;
     a {
-      font-size: 2.4em;
-      font-weight: 700;
-      text-decoration: underline;
+      font-size: 1em;
+      font-weight: 900;
       color: darken($ini-primary-color, 20);
-      font-family: 'Sailec Light', 'open sans', sans-serif;
+      font-family: 'Gloria Hallelujah', cursive;
+    }
+    .circles {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate3d(-50%, -50%, 0);
+      width: 3.2em;
+      height: 3.2em;
+      z-index: -1;
     }
   }
   .hamburger {
@@ -125,6 +136,14 @@ body {
       display: none;
     }
   }
+  #tb--page-size {
+    .mdl-textfield {
+      width: 6em;
+    }
+    input {
+      color: darken($ini-primary-color, 25);
+    }
+  }
 }
 .location-sm-b {
   top: auto;
@@ -143,7 +162,7 @@ body {
 }
 #canvas-playground {
   position: relative;
-  padding-top: 2em;
+  padding: 3em 0;
 
   #tb--main {
     position: fixed;
@@ -152,18 +171,20 @@ body {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    min-width: 6em;
+    &:hover {
+      z-index: 100;
+    }
     .command {
       cursor: pointer;
-      padding: 0.5em 1em;
-      width: 100%;
       text-align: center;
-      &:hover {
-        background-color: $ini-accent-color;
-        color: white;
-      }
+      flex-grow: 1;
+      height: 2.8em;
+      line-height: 2.8em;
       &:not(:last-child) {
-        border-bottom: 1px solid rgba(gray, 0.2);
+        box-shadow: 0 1px 0 rgba(gray, 0.2);
+      }
+      &:hover {
+        color: $ini-accent-color;
       }
     }
   }
@@ -171,14 +192,20 @@ body {
 
 #canvas-pages {
   position: relative;
+  margin-left: 0;
+  //transition: margin-left 250ms;
   .element {
     position: absolute;
     top: 0;
     left: 0;
-    cursor: pointer;
+    cursor: move;
 
     &.image {
       width: 800px;
+    }
+
+    &.form .inner {
+      background-color: white;
     }
 
     .inner {
@@ -189,6 +216,7 @@ body {
       background-size: cover;
       background-position: center;
       height: 100%;
+      overflow: hidden;
       img {
         width: 100%;
       }
@@ -202,6 +230,8 @@ body {
     transition: top 300ms;
     width: 100%;
     overflow: hidden;
+    min-width: 1em;
+    min-height: 1em;
     @media all and (min-width: $screen-md-min) {
       width: 80%;
     }
@@ -226,8 +256,8 @@ body {
         display: block;
         position: absolute;
         top: -1px;
-        right: 0;
-        bottom: 0;
+        right: -1px;
+        bottom: -1px;
         left: -1px;
       }
       .element:hover:before {
@@ -270,21 +300,35 @@ $selection-handle-size: 8px;
     width: 200px;
     height: 200px;
     position: absolute;
-    border: 1px dashed black;
-    top: -1px;
-    left: -1px;
     z-index: 1;
 
-    & > * {
+    .body {
+      position: absolute;
+      top: -1px;
+      right: -1px;
+      bottom: -1px;
+      left: -1px;
+      border: 1px dashed black;
+      background-color: white;
+    }
+    .move-handle {
+      position: absolute;
+      top: -15px;
+      right: -15px;
+      bottom: -15px;
+      left: -15px;
+      background-color: rgba($ini-primary-color, 0.6);
+    }
+    .handle {
       content: "";
       display: block;
       position: absolute;
       width: $selection-handle-size;
       height: $selection-handle-size;
-      background-color: rgba($ini-primary-font-color, 0.5);
+      background-color: rgba($ini-accent-color, 0.6);
       cursor: pointer;
       &:hover {
-        background-color: rgba($ini-primary-font-color, 1);
+        background-color: rgba($ini-accent-color, 1);
       }
     }
     .lt {
@@ -348,15 +392,16 @@ $selection-handle-size: 8px;
   transform: translate(-50%, 0);
   animation: slideFromTopShow 300ms;
   z-index: 62;
+  opacity: 0.8;
+  &:hover {
+    opacity: 1;
+  }
 
   .close {
     position: absolute;
-    right: -1.8em;
-    top: 40%;
-    padding: 0.2em;
-    border-radius: 50px;
-    background-color: white;
-    font-size: 1.2em;
+    right: -2.05em;
+    top: 50%;
+    transform: translateY(-50%);
   }
   button {
     outline: none;
@@ -390,19 +435,13 @@ $selection-handle-size: 8px;
 }
 .pure-box {
   background-color: white;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  box-shadow: 0 0 5px rgba(black,0.3);
 }
 .bg-white {
   background-color: white;
 }
 .cursor-pointer {
   cursor: pointer;
-}
-#tb--page-size {
-  input {
-    width: 5em;
-    padding: 0.2em;
-  }
 }
 .slidebar {
   position: fixed;
@@ -411,17 +450,24 @@ $selection-handle-size: 8px;
   bottom: 0;
   z-index: 68;
   overflow: auto;
-  box-shadow: 0 0 10px #333333;
   transform: translate3d(-100%, 0, 0);
-  transition: transform 250ms;
+  transition: transform 150ms;
   &.show {
     transform: translate3d(0, 0, 0);
+    @media all and (min-width: $screen-md-min) {
+      box-shadow: 0 0 10px #343434;
+    }
   }
   .header {
-    background-color: $ini-accent-color;
+    background-color: #444444;
     height: 18%;
+    h1 {
+      font-family: 'Noto Sans CJK JP Light', 'Roboto', 'Arial', 'Helvetica', sans-serif;
+      color: $ini-primary-color;
+      text-shadow: 0 0 2px black;
+    }
   }
-  .close {
+  .close-btn {
     position: absolute;
     right: 0.5em;
     top: 0.2em;
@@ -446,11 +492,11 @@ $selection-handle-size: 8px;
       height: 100px;
       position: relative;
       //animation: imgItemAdded 500ms;
-      &:hover .options {
+      &:hover .options, &:active .options {
         visibility: visible;
         background-color: rgba(black, 0.3);
         .option {
-          transform: translate(0, 0);
+          transform: translate3d(0, 0, 0);
         }
       }
       img {
@@ -472,7 +518,7 @@ $selection-handle-size: 8px;
         overflow: hidden;
         .option {
           transition: transform 200ms;
-          transform: translate(0, 100%);
+          transform: translate3d(0, 100%, 0);
           outline: none;
           border: 0;
           background-color: rgba(black, 0.75);
@@ -494,19 +540,19 @@ $selection-handle-size: 8px;
   .toggle {
     background-color: $ini-accent-color;
     color: white !important;
-    border: 1px solid white;
+    transition: background-color 300ms;
     &.collapsed {
-      background-color: transparent;
+      background-color: #444;
     }
   }
 }
 #upload-img-btn {
-  border: 1px solid white;
   outline: none;
   width:4em;
   background-color: $ini-accent-color;
   color: white;
   cursor: pointer;
+  border: 0;
 }
 .text-accent-color {
   color: $ini-accent-color !important;
@@ -520,6 +566,7 @@ $selection-handle-size: 8px;
     height: 50px;
     cursor: pointer;
     user-select: none;
+    box-shadow: 0 0 3px #242424;
   }
 }
 @media all and (max-width: $screen-sm-min){
@@ -531,7 +578,6 @@ $selection-handle-size: 8px;
   }
   .hot-tools {
     width: 100%;
-    max-height: 80px;
     overflow: auto;
     top: 0;
   }
@@ -543,6 +589,7 @@ $selection-handle-size: 8px;
   }
   body {
     overflow: hidden;
+    font-size: 0.8em;
   }
   #add-page {
     display: none;
@@ -550,32 +597,94 @@ $selection-handle-size: 8px;
   #remove-item {
     display: none;
   }
+  #main-header {
+    padding: 1em 3em;
+  }
 }
 input[type=date], input[type=number] {
   width: auto;
 }
 #alignment-lines {
-  display: none;
   svg {
     position: absolute;
     z-index: 200;
     left: 0;
     top: 0;
-    display: none;
+    display: block;
+    stroke: $ini-accent-color;
     &.v {
       width: 1px;
+      opacity: 0;
+      transition: opacity 100ms;
     }
     &.h {
       height: 1px;
+      opacity: 0;
+      transition: opacity 100ms;
     }
   }
-  &.show-v, &.show-v .v{
-    display: block;
+  &.show-v .v{
+    opacity: 1;
   }
-  &.show-h, &.show-h .h {
-    display: block;
+  &.show-h .h {
+    opacity: 1;
   }
 }
 .dropdown-item {
   cursor: default;
+}
+.cursor-move {
+  cursor: move;
+}
+#popular-components {
+  .component-container {
+    width: calc(100%/3);
+    height: 150px;
+    padding: 0.3em;
+    min-width: 80px;
+    flex-grow: 1;
+  }
+  .component {
+    user-select: none;
+    cursor: pointer;
+    color: #84754e;
+    box-shadow: 1px 1px 0  0 darken(#393939, 5),2px 2px 0  0 darken(#393939, 5),3px 3px 0  0 darken(#393939, 5),4px 4px 0  0 darken(#393939, 5);
+    width: 100%;
+    background-color: #393939;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 200ms;
+    &:active {
+      transform: translate(4px, 4px);
+      box-shadow: -1px -1px 0  0 darken(#393939, 5),-2px -2px 0  0 darken(#393939, 5),-3px -3px 0  0 darken(#393939, 5),-4px -4px 0  0 darken(#393939, 5);
+    }
+    .material-icons {
+      font-size: 3.2em;
+    }
+  }
+}
+#form-builder-container {
+  .modal-title {
+    flex-grow: 1;
+    text-align: center;
+    margin-right: -32px;
+  }
+  .modal-header, .modal-footer {
+    background-color: $ini-primary-color;
+  }
+  .modal-body {
+    background-color: lighten($ini-primary-color, 2);
+  }
+  .frmb-control li {
+    background: $ini-primary-color;
+    border-radius: 0;
+  }
+  .frmb {
+    background-color: $ini-primary-color;
+  }
+}
+#do-export {
+  color: darken($ini-primary-color, 20);
 }

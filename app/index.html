@@ -14,10 +14,17 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="application-name" content="INI Canvas">
 
+  <link rel="icon shortcut" type="image/png" href="Logomakr_0Yjh5T.png">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css"
+        integrity="sha256-f83N12sqX/GO43Y7vXNt9MjrHkPc4yi9Uq9cLy1wGIU=" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+  <link rel="stylesheet" href="https://fonts.lug.ustc.edu.cn/icon?family=Material+Icons">
+  <link href="https://fonts.lug.ustc.edu.cn/css?family=Bubbler+One|Cinzel|Gloria+Hallelujah|Roboto" rel="stylesheet">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.brown-purple.min.css"/>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
         integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css" integrity="sha256-f83N12sqX/GO43Y7vXNt9MjrHkPc4yi9Uq9cLy1wGIU=" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.perfect-scrollbar/0.7.0/css/perfect-scrollbar.min.css" integrity="sha256-ANTwsT2Ffs0EVPyOuss4fxYnCxewzdZeahx93/uLWDM=" crossorigin="anonymous" />
   <link rel="stylesheet" href="styles/main.css">
   <!-- Color the status bar on mobile devices -->
   <meta name="theme-color" content="#efefef">
@@ -29,209 +36,267 @@
 </head>
 <body>
 <!-- Add your site or app content here -->
-<header id="main-header" class="d-flex align-items-center justify-content-between px-3 py-1 flex-wrap">
+<header id="main-header" class="d-flex align-items-center justify-content-between flex-wrap">
   <nav id="main-navbar" class="d-flex align-items-center">
-    <div class="brand-logo"><a href="#">ini</a></div>
+    <div class="brand-logo cursor-pointer">
+      <div class="circles">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="100" fill="#cdbf96"></circle>
+          <circle cx="100" cy="100" r="68" fill="#d7cbab"></circle>
+          <circle cx="100" cy="100" r="30" fill="#eee9db"></circle>
+        </svg>
+      </div>
+      <a href="#">i</a>
+    </div>
   </nav>
   <section class="d-flex align-items-center flex-wrap justify-content-center">
     <section id="tb--page-size" class="p-2">
-      <label class="mb-0">W: <input class="page-width form-control d-inline-block" type="text" value="1280"></label>
-      &nbsp;&nbsp;
-      <label class="mb-0">H: <input class="page-height form-control d-inline-block" type="text" value="800"></label>
-    </section>
-    <div class="dropdown">
-      <button class="btn btn-secondary dropdown-toggle" id="do-export" data-toggle="dropdown"
-              aria-haspopup="true" aria-expanded="false">
-        导出
-      </button>
-      <div class="dropdown-menu bg-white dropdown-menu-right" id="do-export-options" aria-labelledby="do-export">
-        <button class="dl dropdown-item" data-command="fontName">下载HTML</button>
-        <button class="print dropdown-item" data-command="fontName">打印</button>
+      <div class="mdl-textfield mdl-js-textfield is-dirty">
+        <input class="mdl-textfield__input page-width" type="text" id="page-width-adj" value="1280">
+        <label class="mdl-textfield__label mb-0" for="page-width-adj">Width</label>
       </div>
+      <div class="mdl-textfield mdl-js-textfield is-dirty">
+        <input class="mdl-textfield__input page-height" type="text" id="page-hi-adj" value="800">
+        <label class="mdl-textfield__label mb-0" for="page-hi-adj">Height</label>
+      </div>
+    </section>
+    <div class="wrapper" style="position: relative;">
+      <button class="mdl-button mdl-js-button mdl-button--icon" id="do-export" aria-haspopup="true"
+              aria-expanded="false">
+        <i class="material-icons">save</i>
+      </button>
+      <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" id="do-export-options"
+          for="do-export" aria-labelledby="do-export">
+        <li class="dl mdl-menu__item" data-command="fontName">HTML</li>
+        <li class="print mdl-menu__item" data-command="fontName">Print</li>
+      </ul>
     </div>
   </section>
 </header>
 <section id="canvas-playground">
-  <section class="pure-box d-flex flex-column align-items-center justify-content-around location-sm-b location-md-lc" id="tb--main">
-    <div class="command" title="添加文本" data-command="add-text">富文本</div>
-    <div class="command" title="进入图片库" data-toggle-id="image-lib">图片库</div>
-    <div class="command" title="表单制作" data-toggle="modal" data-target="#form-builder-container">表单制作</div>
-    <div class="command" title="添加常见部件" data-toggle-id="popular-components">常见部件</div>
-    <div class="command" id="add-page" title="增加新页">&plus;</div>
-    <div class="command" id="remove-item" title="移除元素">&minus;</div>
+  <section class="pure-box d-flex align-items-center justify-content-around location-sm-b" id="tb--main">
+    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="添加富文本" data-command="add-text"><i
+      class="material-icons">edit</i></div>
+    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="进入图片库" data-toggle-id="image-lib"><i
+      class="material-icons">collections</i></div>
+    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="制作表单" data-toggle="modal"
+         data-target="#form-builder-container"><i class="material-icons">domain</i></div>
+    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="添加常见部件"
+         data-toggle-id="popular-components"><i class="material-icons">view_comfy</i></div>
+    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="添加动画特效"
+         data-toggle-id="animations-effects"><i class="material-icons">transform</i></div>
+    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" id="add-page" title="增加新页"><i
+      class="material-icons">note_add</i></div>
+    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" id="remove-item" title="移除元素"><i
+      class="material-icons">delete</i></div>
   </section>
   <section id="canvas-pages">
     <div id="overlays"></div>
   </section>
   <section class="hot-tools text p-2 pure-box">
-    <button type="button" class="close close-btn" aria-label="Close" onclick="$(this).closest('.hot-tools').removeClass('show');">
-      <span aria-hidden="true">&times;</span>
+    <button type="button"
+            class="close mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect"
+            aria-label="Close" onclick="$(this).closest('.hot-tools').removeClass('show');">
+      <i aria-hidden="true" class="material-icons">close</i>
     </button>
-    <div class="dropdown">
-      <button class="btn btn-secondary dropdown-toggle" id="fontName-dropMenu" data-toggle="dropdown"
-              aria-haspopup="true" aria-expanded="false">
-        Aa
-      </button>
-      <div class="dropdown-menu bg-white" aria-labelledby="fontName-dropMenu">
-        <button class="dropdown-item" data-command="fontName">Aria</button>
-        <button class="dropdown-item" data-command="fontName">Noto Sans CJK JP Light</button>
-        <button class="dropdown-item" data-command="fontName">Times New Roman</button>
-        <button class="dropdown-item" data-command="fontName">Courier New</button>
-        <button class="dropdown-item" data-command="fontName">Roboto</button>
-        <button class="dropdown-item" data-command="fontName">微软雅黑</button>
-        <button class="dropdown-item" data-command="fontName">Comic Sans MS</button>
-        <button class="dropdown-item" data-command="fontName">Open Sans</button>
-        <button class="dropdown-item" data-command="fontName">Ubuntu</button>
-        <button class="dropdown-item" data-command="fontName">Georgia</button>
-        <button class="dropdown-item" data-command="fontName">Verdana</button>
-        <button class="dropdown-item" data-command="fontName">Monospace</button>
-        <button class="dropdown-item" data-command="fontName">Courier New</button>
-      </div>
-    </div>
-    <div class="dropdown">
-      <button class="btn btn-secondary dropdown-toggle" id="fontSize-dropMenu" data-toggle="dropdown"
-              aria-haspopup="true" aria-expanded="false">
-        格式
-      </button>
-      <div class="dropdown-menu bg-white" aria-labelledby="fontSize-dropMenu">
-        <button class="dropdown-item" data-command="formatBlock"><h1>h1</h1></button>
-        <button class="dropdown-item" data-command="formatBlock"><h2>h2</h2></button>
-        <button class="dropdown-item" data-command="formatBlock"><h3>h3</h3></button>
-        <button class="dropdown-item" data-command="formatBlock"><h4>h4</h4></button>
-        <button class="dropdown-item" data-command="formatBlock"><h5>h5</h5></button>
-        <button class="dropdown-item" data-command="formatBlock"><h6>h6</h6></button>
-      </div>
-    </div>
-    <div class="dropdown">
-      <button class="btn btn-secondary dropdown-toggle" id="fontPixel-dropMenu" data-toggle="dropdown"
-              aria-haspopup="true" aria-expanded="false">
-        字体大小
-      </button>
-      <div class="dropdown-menu bg-white" aria-labelledby="fontPixel-dropMenu">
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">10</button>
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">11</button>
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">12</button>
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">16</button>
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">18</button>
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">20</button>
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">24</button>
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">30</button>
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">50</button>
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">60</button>
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">80</button>
-        <button class="dropdown-item" data-command="fontSize" data-detail="1">100</button>
-      </div>
-    </div>
-    <button data-command="bold" class="btn"><strong>B</strong></button>
-    <button data-command="italic" class="btn"><em>I</em></button>
-    <button data-command="underline" class="btn"><u>U</u></button>
-    <button data-command="strikethrough" class="btn">
-      <del>S</del>
+    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="fontName-dropMenu">
+      <i class="material-icons">font_download</i>
     </button>
-    <button data-command="insertUnorderedList" class="btn">UL</button>
-    <button data-command="insertOrderedList" class="btn">OL</button>
-    <button data-command="createLink" class="btn">LK</button>
-    <button data-command="unlink" class="btn">
-      <del>LK</del>
+    <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect"
+        for="fontName-dropMenu">
+      <li class="mdl-menu__item" data-command="fontName">Aria</li>
+      <li class="mdl-menu__item" data-command="fontName">Noto Sans CJK JP</li>
+      <li class="mdl-menu__item" data-command="fontName">Times New Roman</li>
+      <li class="mdl-menu__item" data-command="fontName">Courier New</li>
+      <li class="mdl-menu__item" data-command="fontName">Roboto</li>
+      <li class="mdl-menu__item" data-command="fontName">微软雅黑</li>
+      <li class="mdl-menu__item" data-command="fontName">Comic Sans MS</li>
+      <li class="mdl-menu__item" data-command="fontName">Open Sans</li>
+      <li class="mdl-menu__item" data-command="fontName">Ubuntu</li>
+      <li class="mdl-menu__item" data-command="fontName">Georgia</li>
+      <li class="mdl-menu__item" data-command="fontName">Verdana</li>
+      <li class="mdl-menu__item" data-command="fontName">Monospace</li>
+      <li class="mdl-menu__item" data-command="fontName">Courier New</li>
+    </ul>
+    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="ontPixel-dropMenu">
+      <i class="material-icons">format_size</i>
     </button>
-    <button data-command="insertImage" class="btn">图片</button>
-    <button id="fgcolor-button" class="btn">Color</button>
-    <button id="bgcolor-button" class="btn">BackColor</button>
-    <button data-command="backColor" data-detail="rgba(0,0,0,0)" class="btn">
-      <del>BackColor</del>
+    <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect"
+        for="ontPixel-dropMenu">
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">10</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">11</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">12</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">16</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">18</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">20</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">24</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">30</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">50</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">60</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">80</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">100</li>
+      <li class="mdl-menu__item" data-command="fontSize" data-detail="1">120</li>
+    </ul>
+    <button data-command="bold" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_bold</i></button>
+    <button data-command="italic" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_italic</i></button>
+    <button data-command="underline" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_underlined</i></button>
+    <button data-command="strikethrough" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+      <i class="material-icons">format_strikethrough</i>
     </button>
-    <button data-command="insertHorizontalRule" class="btn">---</button>
-    <button data-command="justifyCenter" class="btn">居中对齐</button>
-    <button data-command="justifyFull" class="btn">两边对齐</button>
-    <button data-command="justifyLeft" class="btn">左对齐</button>
-    <button data-command="justifyRight" class="btn">右对齐</button>
-    <button data-command="selectAll" class="btn">全选</button>
+    <button data-command="insertUnorderedList" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_list_bulleted</i></button>
+    <button data-command="insertOrderedList" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_list_numbered</i></button>
+    <button data-command="createLink" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">insert_link</i></button>
+    <button id="fgcolor-button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_color_text</i></button>
+    <button id="bgcolor-button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_color_fill</i></button>
+    <button data-command="insertHorizontalRule" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+      <i class="material-icons">&#8213;</i></button>
+    <button data-command="justifyCenter" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_align_center</i></button>
+    <button data-command="justifyFull" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_align_justify</i></button>
+    <button data-command="justifyLeft" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_align_left</i></button>
+    <button data-command="justifyRight" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_align_right</i></button>
+    <button data-command="selectAll" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">select_all</i></button>
+    <button data-command="removeFormat" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+      class="material-icons">format_clear</i></button>
   </section>
+  <section class="hot-tools card-square card-wide card-tag card-note pure-box">
+    <button type="button"
+            class="close mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect"
+            aria-label="Close" onclick="$(this).closest('.hot-tools').removeClass('show');">
+      <i aria-hidden="true" class="material-icons">close</i>
+    </button>
+    </section>
   <aside id="image-lib" class="slidebar col-sm-12 col-md-3 px-0">
     <header class="header text-center text-white d-flex justify-content-center align-items-center"><h1>图片库</h1>
-      <button type="button" class="close close-btn" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
+      <button type="button" class="close-btn mdl-button mdl-js-button mdl-button--icon" aria-label="Close">
+        <i class="material-icons">close</i>
       </button>
     </header>
     <article class="content">
       <div class="p-2">
-        <a href="#color-platte" class="toggle py-2 px-4 d-inline-block" data-toggle="collapse" aria-expanded="true"
+        <a href="#color-platte" class="toggle mdl-button mdl-js-button mdl-js-ripple-effect d-inline-block"
+           data-toggle="collapse" aria-expanded="true"
            aria-controls="#color-platte">色板</a>
       </div>
       <section id="color-platte" class="collapse show">
         <section class="inner flex-wrap align-items-start d-flex p-2">
           <div style="background: #780fa8" title="添加色块" id="add-color-fp"
-               class="d-flex justify-content-center align-items-center"><h1 class="text-white mb-0">&plus;</h1></div>
+               class="d-flex justify-content-center align-items-center"><i class="material-icons text-white">add</i>
+          </div>
         </section>
       </section>
       <div class="p-2">
-        <a href="#special-bg-images" class="toggle py-2 px-4 d-inline-block" data-toggle="collapse" aria-expanded="true"
+        <a href="#special-bg-images" class="toggle mdl-button mdl-js-button mdl-js-ripple-effect d-inline-block"
+           data-toggle="collapse" aria-expanded="true"
            aria-controls="#special-bg-images">特色背景照</a>
       </div>
       <section id="special-bg-images" class="collapse show">
         <section class="inner flex-wrap align-items-start d-flex"></section>
       </section>
-      <div class="p-2">
-        <a href="#special-bg-images" class="toggle py-2 px-4 d-inline-block" data-toggle="collapse" aria-expanded="true"
-           aria-controls="#special-bg-images">特色背景照</a>
-      </div>
     </article>
     <footer class="footer d-flex justify-content-center align-items-center">
-      <button type="button" id="upload-img-btn" onclick="$('#upload-img-field').get(0).click();"><strong>&#8673;</strong></button>
-      <input name="input-images" multiple type="file" id="upload-img-field" accept="image/png, image/jpeg, image/gif" style="display: none;">
+      <button type="button" id="upload-img-btn" onclick="$('#upload-img-field').get(0).click();">
+        <strong>&#8673;</strong></button>
+      <input name="input-images" multiple type="file" id="upload-img-field" accept="image/png, image/jpeg, image/gif"
+             style="display: none;">
     </footer>
   </aside>
   <aside id="popular-components" class="slidebar col-sm-12 col-md-3 px-0">
     <header class="header text-center text-white d-flex justify-content-center align-items-center"><h1>常见部件</h1>
-      <button type="button" class="close close-btn" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
+      <button type="button" class="close-btn mdl-button mdl-js-button mdl-button--icon" aria-label="Close">
+        <i class="material-icons">close</i>
       </button>
     </header>
     <article class="content">
-      <h1>hello</h1>
+      <div class="p-2">
+        <div class="d-flex flex-wrap align-items-start">
+          <div class="component-container">
+            <div class="component music" data-component="music"><i class="material-icons">library_music</i></div>
+          </div>
+          <div class="component-container">
+            <div class="component video" data-component="video"><i class="material-icons">video_library</i></div>
+          </div>
+          <div class="component-container">
+            <div class="component card" data-component="card-square"><h4>方卡片</h4></div>
+          </div>
+          <div class="component-container">
+            <div class="component card" data-component="card-wide"><h4>宽卡片</h4></div>
+          </div>
+          <div class="component-container">
+            <div class="component card" data-component="card-tag"><h4>贴纸</h4></div>
+          </div>
+          <div class="component-container">
+            <div class="component card" data-component="card-note"><h4>便条</h4></div>
+          </div>
+          <div class="component-container">
+            <div class="component slideshow" data-component="slideshow"><h4>幻灯片</h4></div>
+          </div>
+        </div>
+      </div>
     </article>
     <footer class="footer"></footer>
   </aside>
   <section id="form-builder-container" class="modal fade" tabindex="-1" aria-labelledby="build-form-title"
            aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
+      <div class="modal-content rounded-0">
         <div class="modal-header">
-          <h5 class="modal-title" id="build-form-title">制作表单</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
+          <h4 class="modal-title mt-0" id="build-form-title">制作表单</h4>
+          <button type="button" class="mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect"
+                  data-dismiss="modal" aria-label="Close">
+            <i class="material-icons">close</i>
           </button>
         </div>
         <div class="modal-body">
           <div id="form-builder-mounter"></div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="clear btn btn-secondary" data-dismiss="modal">取消并清除</button>
-          <button type="button" class="submit btn btn-primary">确定制作完成</button>
+          <button type="button" class="clear mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
+                  data-dismiss="modal">取消并清除
+          </button>
+          <button type="button"
+                  class="submit mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+            确定制作完成
+          </button>
         </div>
       </div>
     </div>
   </section>
   <section id="alignment-lines">
     <svg class="h" width="1000px" height="2px">
-      <line x1="0" x2="1000" y1="1" y2="1" stroke="#000000" stroke-width="2" stroke-dasharray="6, 6"></line>
+      <line x1="0" x2="100%" y1="1" y2="1" stroke-width="2" stroke-dasharray="6, 6"></line>
     </svg>
     <svg class="v" width="2px" height="1000px">
-      <line x1="0" x2="0" y1="0" y2="1000" stroke="#000000" stroke-width="2" stroke-dasharray="6, 6"></line>
+      <line x1="0" x2="0" y1="0" y2="100%" stroke-width="2" stroke-dasharray="6, 6"></line>
     </svg>
   </section>
 </section>
 <!-- templates -->
 <script type="text/html-template" id="tpl--selection-box">
   <div class="selection-box">
-    <div class="lt"></div>
-    <div class="t"></div>
-    <div class="rt"></div>
-    <div class="r"></div>
-    <div class="rb"></div>
-    <div class="b"></div>
-    <div class="lb"></div>
-    <div class="l"></div>
+    <div class="move-handle cursor-move"></div>
+    <div class="body">
+      <div class="lt handle"></div>
+      <div class="t handle"></div>
+      <div class="rt handle"></div>
+      <div class="r handle"></div>
+      <div class="rb handle"></div>
+      <div class="b handle"></div>
+      <div class="lb handle"></div>
+      <div class="l handle"></div>
+    </div>
   </div>
 </script>
 <script type="text/html-template" id="tpl--page">
@@ -255,6 +320,148 @@
   <div class="color-brick" style="background: {{color-code}};" title="{{color-code}}"
        data-color-code="{{color-code}}"></div>
 </script>
+<script type="text/html-template" id="tpl--card-wide">
+  <style>
+    .demo-card-wide.mdl-card {
+      width: 512px;
+    }
+    .demo-card-wide > .mdl-card__title {
+      color: #fff;
+      height: 176px;
+      background-image: url('https://haoyellow.cn/images/comp_zard_smile_wide.jpg');
+      background-position: center;
+      background-size: cover;
+    }
+    .demo-card-wide > .mdl-card__menu {
+      color: #fff;
+    }
+  </style>
+  <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+    <div class="mdl-card__title">
+      <h2 class="mdl-card__title-text">Welcome</h2>
+    </div>
+    <div class="mdl-card__supporting-text">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+      Mauris sagittis pellentesque lacus eleifend lacinia...
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+        Get Started
+      </a>
+    </div>
+    <div class="mdl-card__menu">
+      <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect">
+        <i class="material-icons">share</i>
+      </button>
+    </div>
+  </div>
+</script>
+<script type="text/html-template" id="tpl--card-square">
+  <style>
+    .demo-card-square.mdl-card {
+      width: 320px;
+      height: 320px;
+    }
+    .demo-card-square > .mdl-card__title {
+      color: #fff;
+      background-image: url('https://haoyellow.cn/images/comp_zard_purple.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
+
+  <div class="demo-card-square mdl-card mdl-shadow--2dp">
+    <div class="mdl-card__title mdl-card--expand">
+      <h2 class="mdl-card__title-text">Update</h2>
+    </div>
+    <div class="mdl-card__supporting-text">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+      Aenan convallis.
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+        View Updates
+      </a>
+    </div>
+  </div>
+
+</script>
+<script type="text/html-template" id="tpl--card-tag">
+  <style>
+    .demo-card-image.mdl-card {
+      width: 256px;
+      height: 256px;
+      background-image: url('https://haoyellow.cn/images/comp_zard_smile.png');
+      background-size: cover;
+      background-position: center;
+    }
+    .demo-card-image > .mdl-card__actions {
+      height: 52px;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .demo-card-image__filename {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+    }
+  </style>
+
+  <div class="demo-card-image mdl-card mdl-shadow--2dp">
+    <div class="mdl-card__title mdl-card--expand"></div>
+    <div class="mdl-card__actions">
+      <span class="demo-card-image__filename">Image.jpg</span>
+    </div>
+  </div>
+</script>
+<script type="text/html-template" id="tpl--card-note">
+  <style>
+    .demo-card-event.mdl-card {
+      width: 256px;
+      height: 256px;
+      background: #3E4EB8;
+    }
+    .demo-card-event > .mdl-card__actions {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .demo-card-event > .mdl-card__title {
+      align-items: flex-start;
+    }
+    .demo-card-event > .mdl-card__title > h4 {
+      margin-top: 0;
+    }
+    .demo-card-event > .mdl-card__actions {
+      display: flex;
+      box-sizing:border-box;
+      align-items: center;
+    }
+    .demo-card-event > .mdl-card__actions > .material-icons {
+      padding-right: 10px;
+    }
+    .demo-card-event > .mdl-card__title,
+    .demo-card-event > .mdl-card__actions,
+    .demo-card-event > .mdl-card__actions > .mdl-button {
+      color: #fff;
+    }
+  </style>
+
+  <div class="demo-card-event mdl-card mdl-shadow--2dp">
+    <div class="mdl-card__title mdl-card--expand">
+      <h4>
+        Featured event:<br>
+        May 24, 2016<br>
+        7-11pm
+      </h4>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+        Add to Calendar
+      </a>
+      <div class="mdl-layout-spacer"></div>
+      <i class="material-icons">event</i>
+    </div>
+  </div>
+</script>
 
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"
@@ -268,14 +475,18 @@
         integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
         crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js" integrity="sha256-ZdnRjhC/+YiBbXTHIuJdpf7u6Jh5D2wD5y0SNRWDREQ=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/i18n/jquery.spectrum-zh-cn.min.js" integrity="sha256-5h6mrxuAFBt3/7HKsDkxz/q9NHnJlzdHKfvFdSlg/k0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js"
+        integrity="sha256-ZdnRjhC/+YiBbXTHIuJdpf7u6Jh5D2wD5y0SNRWDREQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/i18n/jquery.spectrum-zh-cn.min.js"
+        integrity="sha256-5h6mrxuAFBt3/7HKsDkxz/q9NHnJlzdHKfvFdSlg/k0=" crossorigin="anonymous"></script>
 <script src="https://formbuilder.online/assets/js/form-builder.min.js"></script>
 <script src="https://formbuilder.online/assets/js/form-render.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.5.0/jquery.ui.position.min.js"
         integrity="sha256-C7HjUf9VdfVJ5Dxet+nW9wK7rKLAhEkEYMjGXsw7FM8=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.5.0/jquery.contextMenu.min.js"
         integrity="sha256-MP9gv2enc2NbOKgW6K+YNQtImn/OXpYBj2nTZj43Idc=" crossorigin="anonymous"></script>
+<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.perfect-scrollbar/0.7.0/js/perfect-scrollbar.jquery.min.js" integrity="sha256-G7x5vTR7iVBtZ10VflIkF/XJzfzAuS0tE6AFIb4d9FQ=" crossorigin="anonymous"></script>
 <!-- build:js scripts/main.min.js -->
 <script src="scripts/service-worker.js"></script>
 <script src="scripts/mediator.js"></script>

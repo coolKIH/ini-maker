@@ -1,0 +1,227 @@
+{
+    "project": {},
+    "files": {
+        "main.js": {
+            "name": "main.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
+        "mediator.js": {
+            "name": "mediator.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
+        "service-worker.js": {
+            "name": "service-worker.js",
+            "modules": {},
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {},
+    "classes": {},
+    "elements": {},
+    "classitems": [
+        {
+            "file": "main.js",
+            "line": 177,
+            "description": "When anything but currently active element is clicked,\nthe active element will be inactive.",
+            "params": [
+                {
+                    "name": "event",
+                    "description": "- Get touched target from this event",
+                    "type": "Event"
+                }
+            ],
+            "class": ""
+        },
+        {
+            "file": "main.js",
+            "line": 197,
+            "description": "When subscribed 'addPage' event is published",
+            "params": [
+                {
+                    "name": "pageEl",
+                    "description": "- jQuery object of page elem",
+                    "type": "Object"
+                }
+            ],
+            "class": ""
+        },
+        {
+            "file": "main.js",
+            "line": 441,
+            "description": "When an element is focused/blur, show/hide the selection box",
+            "params": [
+                {
+                    "name": "elem",
+                    "description": "- jQuery object",
+                    "type": "Object"
+                },
+                {
+                    "name": "wrap",
+                    "description": "- show or hide the selection box",
+                    "type": "Boolean"
+                }
+            ],
+            "class": ""
+        },
+        {
+            "file": "main.js",
+            "line": 482,
+            "description": "Active elements are meant to be selected",
+            "params": [
+                {
+                    "name": "elem",
+                    "description": "- jQuery object",
+                    "type": "Object"
+                },
+                {
+                    "name": "active",
+                    "description": "- make the elem active or inactive",
+                    "type": "Boolean"
+                }
+            ],
+            "class": ""
+        },
+        {
+            "file": "main.js",
+            "line": 506,
+            "description": "Create new common node for specific use",
+            "params": [
+                {
+                    "name": "nodeName",
+                    "description": "- name of the node, mostly 'div'",
+                    "type": "String"
+                },
+                {
+                    "name": "cssOptions",
+                    "description": "- wrapped with css styles",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "- built jQuery object",
+                "type": "Object"
+            },
+            "class": ""
+        },
+        {
+            "file": "main.js",
+            "line": 519,
+            "description": "Create a new text element",
+            "class": ""
+        },
+        {
+            "file": "main.js",
+            "line": 586,
+            "description": "Create any rich text element like text, pictures, etc",
+            "params": [
+                {
+                    "name": "command",
+                    "description": "- used to specifically create an element",
+                    "type": "String"
+                },
+                {
+                    "name": "extra",
+                    "description": "- optional but sometimes we need",
+                    "type": "String"
+                }
+            ],
+            "class": ""
+        },
+        {
+            "file": "main.js",
+            "line": 627,
+            "description": "Handle it when user click a button on the main toolbar",
+            "class": ""
+        },
+        {
+            "file": "main.js",
+            "line": 675,
+            "description": "When right-bottom add-page button is clicked",
+            "class": ""
+        },
+        {
+            "file": "mediator.js",
+            "line": 1,
+            "description": "Created by hao on 17-4-15.",
+            "class": ""
+        },
+        {
+            "file": "mediator.js",
+            "line": 9,
+            "class": ""
+        },
+        {
+            "file": "service-worker.js",
+            "line": 1,
+            "description": "Created by hao on 17-4-15.",
+            "class": ""
+        },
+        {
+            "file": "service-worker.js",
+            "line": 4,
+            "class": ""
+        }
+    ],
+    "warnings": [
+        {
+            "message": "Missing item type\nWhen anything but currently active element is clicked,\nthe active element will be inactive.",
+            "line": " main.js:177"
+        },
+        {
+            "message": "Missing item type\nWhen subscribed 'addPage' event is published",
+            "line": " main.js:197"
+        },
+        {
+            "message": "Missing item type\nWhen an element is focused/blur, show/hide the selection box",
+            "line": " main.js:441"
+        },
+        {
+            "message": "Missing item type\nActive elements are meant to be selected",
+            "line": " main.js:482"
+        },
+        {
+            "message": "Missing item type\nCreate new common node for specific use",
+            "line": " main.js:506"
+        },
+        {
+            "message": "Missing item type\nCreate a new text element",
+            "line": " main.js:519"
+        },
+        {
+            "message": "Missing item type\nCreate any rich text element like text, pictures, etc",
+            "line": " main.js:586"
+        },
+        {
+            "message": "Missing item type\nHandle it when user click a button on the main toolbar",
+            "line": " main.js:627"
+        },
+        {
+            "message": "Missing item type\nWhen right-bottom add-page button is clicked",
+            "line": " main.js:675"
+        },
+        {
+            "message": "Missing item type\nCreated by hao on 17-4-15.",
+            "line": " mediator.js:1"
+        },
+        {
+            "message": "Missing item type",
+            "line": " mediator.js:9"
+        },
+        {
+            "message": "Missing item type\nCreated by hao on 17-4-15.",
+            "line": " service-worker.js:1"
+        },
+        {
+            "message": "Missing item type",
+            "line": " service-worker.js:4"
+        }
+    ]
+}

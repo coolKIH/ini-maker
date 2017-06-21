@@ -1,23 +1,5 @@
-/*!
- *
- *  Web Starter Kit
- *  Copyright 2015 Google Inc. All rights reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the 'License');
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *    https://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an 'AS IS' BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License
- *
- */
 /* eslint-env browser */
-/* globals Mediator, interact, jscolor */
+/* globals Mediator, interact */
 (function () {
   'use strict';
 
@@ -31,6 +13,8 @@
       ADD_COLOR: 'add-color',
       ADD_FORM: 'add-form',
       ADD_COMP: 'add-comp',
+      ADD_AUDIO: 'add-audio',
+      ADD_VIDEO: 'add-video'
     },
     utils: {
       getElOffsetCenter: function (target) {
@@ -143,16 +127,17 @@
         if (!pageCtn.length) {
           return;
         }
-        var elHtml = pageCtn.get(0).outerHTML;
-        var self = this;
         $.get(template, function (response) {
-          var dcm = document.createElement('html');
-          dcm.innerHTML = response;
-          var p = dcm.querySelector('.page');
-          p.style.width = pageCtn.width() + 'px';
-          p.style.height = pageCtn.height() + 'px';
-          p.innerHTML = elHtml;
-          cb(dcm.outerHTML);
+          for (var i = 0; i < pageCtn.length; i++) {
+            var dcm = document.createElement('html');
+            var elHtml = pageCtn.get(i).outerHTML;
+            dcm.innerHTML = response;
+            var p = dcm.querySelector('.page');
+            p.style.width = pageCtn.get(i).clientWidth + 'px';
+            p.style.height = pageCtn.get(i).clientHeight + 'px';
+            p.innerHTML = elHtml;
+            cb(dcm.outerHTML);
+          }
         });
       },
       download: function (filename, mimeType, text) {
@@ -178,6 +163,10 @@
     }
   };
 
+  /**
+   * @class canvasCtrl
+   * @type {Mediator}
+   */
   var canvasCtrl = new Mediator();
   var uiCtrl = new Mediator();
 
@@ -219,6 +208,9 @@
     }
 
     function onChangePageSize(width, height) {
+      if (activeEl) {
+        setElActive(activeEl, false);
+      }
       if (selectedPageCtn) {
         var page = selectedPageCtn.closest('.page');
         if (width && height) {
@@ -237,6 +229,12 @@
     function onRmItem(target) {
       if (target) {
         target.remove();
+        if (target.is('.page')) {
+          rearrangePages();
+          if (target.is(selectedPageCtn.closest('.page'))) {
+            selectedPageCtn = null;
+          }
+        }
       } else {
         if (activeEl) {
           activeEl.remove();
@@ -260,28 +258,51 @@
     }
 
     function changeBg(imgSrc) {
+      var bgCSSObj = {
+        'background-image': 'url(' + imgSrc + ')'
+      };
       if (activeEl) {
-        activeEl.find('.inner').css(
-          'background-image', 'url(' + imgSrc + ')'
-        );
+        if (activeEl.is('.comp.card-wide') || activeEl.is('.comp.card-square')) {
+          activeEl.find('.mdl-card__title').css(bgCSSObj);
+        } else if (activeEl.is('.comp.card-note') || activeEl.is('.comp.card-tag')) {
+          activeEl.find('.mdl-card').css(bgCSSObj);
+        } else {
+          activeEl.find('.inner').css(bgCSSObj);
+        }
       } else if (selectedPageCtn) {
-        selectedPageCtn.css(
-          'background-image', 'url(' + imgSrc + ')'
-        );
+        selectedPageCtn.css(bgCSSObj);
       }
     }
 
     function changeBgColor(colorCode) {
+      var bgCSSObj = {
+        'background-color': colorCode,
+        'background-image': 'url()'
+      };
       if (activeEl) {
-        activeEl.find('.inner').css('background-color', colorCode).css('background-image', '');
+        if (activeEl.is('.comp.card-wide') || activeEl.is('.comp.card-square')) {
+          activeEl.find('.mdl-card__title').css(bgCSSObj);
+        } else if (activeEl.is('.comp.card-note') || activeEl.is('.comp.card-tag')) {
+          activeEl.find('.mdl-card').css(bgCSSObj);
+        } else {
+          activeEl.find('.inner').css(bgCSSObj);
+        }
       } else if (selectedPageCtn) {
-        selectedPageCtn.css('background-color', colorCode).css('background-image', '');
+        selectedPageCtn.css(bgCSSObj);
       }
     }
 
     function blurActiveEl() {
       if (activeEl) {
         setElActive(activeEl, false);
+      }
+    }
+
+    function applyAnimation(x) {
+      if (activeEl) {
+        activeEl.find('.inner').removeClass().addClass('inner animated').addClass(x);
+      } else {
+        uiCtrl.publish('showWarning', '先选择想要应用动画的物件');
       }
     }
 
@@ -292,6 +313,8 @@
     canvasCtrl.subscribe('changeBg', changeBg);
     canvasCtrl.subscribe('changeBgColor', changeBgColor);
     canvasCtrl.subscribe('blurActiveEl', blurActiveEl);
+    canvasCtrl.subscribe('rearrangePages', rearrangePages);
+    canvasCtrl.subscribe('applyAnimation', applyAnimation);
 
     canvasCtrl.getActiveEl = function () {
       return activeEl;
@@ -302,7 +325,7 @@
 
     common.utils.makeElResizable('.page',
       {right: '.resize-handle', bottom: '.resize-handle'});
-    common.utils.makeElResizable('.selection-box.text, .selection-box.form', {
+    common.utils.makeElResizable('.selection-box.text, .selection-box.form, .selection-box.video', {
       top: '.t, .lt, .rt',
       right: '.r, .rt, .rb',
       bottom: '.b, .lb, .rb',
@@ -344,17 +367,17 @@
             offsetCenter.cy = siblingOC.cy;
           }
         });
-        if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth()/2) <= 2) {
+        if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth() / 2) <= 2) {
           hasV = true;
-          common.utils.updatePosition(alLines.children('.v'), selectedPageCtn.outerWidth()/2, 0);
-          offsetCenter.cx = selectedPageCtn.outerWidth()/2;
+          common.utils.updatePosition(alLines.children('.v'), selectedPageCtn.outerWidth() / 2, 0);
+          offsetCenter.cx = selectedPageCtn.outerWidth() / 2;
         }
-        if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight()/2) <= 2) {
+        if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight() / 2) <= 2) {
           hasH = true;
-          common.utils.updatePosition(alLines.children('.h'), 0, selectedPageCtn.outerHeight()/2);
-          offsetCenter.cy = selectedPageCtn.outerHeight()/2;
+          common.utils.updatePosition(alLines.children('.h'), 0, selectedPageCtn.outerHeight() / 2);
+          offsetCenter.cy = selectedPageCtn.outerHeight() / 2;
         }
-        common.utils.updatePosition(target, offsetCenter.cx + dx - target.outerWidth()/2, offsetCenter.cy + dy - target.outerHeight()/2);
+        common.utils.updatePosition(target, offsetCenter.cx + dx - target.outerWidth() / 2, offsetCenter.cy + dy - target.outerHeight() / 2);
         if (hasH) {
           alLines.addClass('show-h').children('.h').attr('width', selectedPageCtn.outerWidth() + 'px');
         } else {
@@ -370,41 +393,54 @@
         alLines.remove().removeClass('show-h show-v');
       }
     });
-    // common.utils.makeElDraggable('.element', {
-    //   context: '.elements',
-    //   // onstart: function (event) {
-    //   //   // alLines.appendTo(selectedPageCtn.closest('.page'));
-    //   // },
-    //   // onmove: function (event) {
-    //   //   // var target = $(event.target);
-    //   //   // var offsetCenter = common.utils.getElOffsetCenter(target);
-    //   //   // common.utils.updatePosition(alLines.children('.v'), offsetCenter.cx, 0);
-    //   //   // common.utils.updatePosition(alLines.children('.h'), 0, offsetCenter.cy);
-    //   //   // var hasH = false, hasV = false;
-    //   //   // target.siblings('.element').each(function () {
-    //   //   //   var siblingOC = common.utils.getElOffsetCenter($(this));
-    //   //   //   if (Math.abs(siblingOC.cx - offsetCenter.cx) < 1) {
-    //   //   //     hasV = true;
-    //   //   //   }
-    //   //   //   if (Math.abs(siblingOC.cy - offsetCenter.cy) < 1) {
-    //   //   //     hasH = true;
-    //   //   //   }
-    //   //   // });
-    //   //   // if (hasH) {
-    //   //   //   alLines.addClass('show-h');
-    //   //   // } else {
-    //   //   //   alLines.removeClass('show-h');
-    //   //   // }
-    //   //   // if (hasV) {
-    //   //   //   alLines.addClass('show-v');
-    //   //   // } else {
-    //   //   //   alLines.removeClass('show-v');
-    //   //   // }
-    //   // },
-    //   // onend: function (event) {
-    //   //   // alLines.remove();
-    //   // }
-    // });
+    common.utils.makeElDraggable('.element', {
+      context: document.getElementById('pages'),
+      onstart: function (event) {
+        alLines.appendTo(selectedPageCtn.closest('.page'));
+      },
+      onmove: function (event) {
+        var target = $(event.target);
+        var offsetCenter = common.utils.getElOffsetCenter(target);
+        var hasH = false, hasV = false;
+        target.siblings('.element').each(function () {
+          var siblingOC = common.utils.getElOffsetCenter($(this));
+          if (Math.abs(siblingOC.cx - offsetCenter.cx) <= 2) {
+            hasV = true;
+            common.utils.updatePosition(alLines.children('.v'), siblingOC.cx, 0);
+            offsetCenter.cx = siblingOC.cx;
+          }
+          if (Math.abs(siblingOC.cy - offsetCenter.cy) <= 2) {
+            hasH = true;
+            common.utils.updatePosition(alLines.children('.h'), 0, siblingOC.cy);
+            offsetCenter.cy = siblingOC.cy;
+          }
+        });
+        if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth() / 2) <= 2) {
+          hasV = true;
+          common.utils.updatePosition(alLines.children('.v'), selectedPageCtn.outerWidth() / 2, 0);
+          offsetCenter.cx = selectedPageCtn.outerWidth() / 2;
+        }
+        if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight() / 2) <= 2) {
+          hasH = true;
+          common.utils.updatePosition(alLines.children('.h'), 0, selectedPageCtn.outerHeight() / 2);
+          offsetCenter.cy = selectedPageCtn.outerHeight() / 2;
+        }
+        common.utils.updatePosition(target, offsetCenter.cx - target.outerWidth() / 2, offsetCenter.cy - target.outerHeight() / 2);
+        if (hasH) {
+          alLines.addClass('show-h').children('.h').attr('width', selectedPageCtn.outerWidth() + 'px');
+        } else {
+          alLines.removeClass('show-h');
+        }
+        if (hasV) {
+          alLines.addClass('show-v').children('.v').attr('height', selectedPageCtn.outerHeight() + 'px');
+        } else {
+          alLines.removeClass('show-v');
+        }
+      },
+      onend: function (event) {
+        alLines.remove().removeClass('show-h show-v');
+      }
+    });
 
     /**
      * When an element is focused/blur, show/hide the selection box
@@ -421,7 +457,6 @@
       var pagePos = selectedPageCtn.closest('.page').position();
       var dx = pagePos.left;
       var dy = pagePos.top;
-
       if (wrap) {
         x += dx;
         y += dy;
@@ -458,7 +493,7 @@
       if (active) {
         activeEl = elem.addClass('active');
         setWrapSelectionBox(activeEl);
-        if (activeEl.hasClass('text')) {
+        if (activeEl.hasClass('text') || activeEl.hasClass('comp')) {
           common.utils.setCtnEditable(activeEl, true);
           elem.find('.inner').focus();
         }
@@ -482,54 +517,6 @@
       var node = $(document.createElement('div'));
       var innerNode = $(document.createElement(nodeName)).addClass('inner');
       node.append(innerNode);
-      common.utils.makeElDraggable('.element', {
-        context: selectedPageCtn.get(0),
-        onstart: function (event) {
-          alLines.appendTo(selectedPageCtn.closest('.page'));
-        },
-        onmove: function (event) {
-          var target = $(event.target);
-          var offsetCenter = common.utils.getElOffsetCenter(target);
-          var hasH = false, hasV = false;
-          target.siblings('.element').each(function () {
-            var siblingOC = common.utils.getElOffsetCenter($(this));
-            if (Math.abs(siblingOC.cx - offsetCenter.cx) <= 2) {
-              hasV = true;
-              common.utils.updatePosition(alLines.children('.v'), siblingOC.cx, 0);
-              offsetCenter.cx = siblingOC.cx;
-            }
-            if (Math.abs(siblingOC.cy - offsetCenter.cy) <= 2) {
-              hasH = true;
-              common.utils.updatePosition(alLines.children('.h'), 0, siblingOC.cy);
-              offsetCenter.cy = siblingOC.cy;
-            }
-          });
-          if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth()/2) <= 2) {
-            hasV = true;
-            common.utils.updatePosition(alLines.children('.v'), selectedPageCtn.outerWidth()/2, 0);
-            offsetCenter.cx = selectedPageCtn.outerWidth() / 2;
-          }
-          if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight()/2) <= 2) {
-            hasH = true;
-            common.utils.updatePosition(alLines.children('.h'), 0, selectedPageCtn.outerHeight()/2);
-            offsetCenter.cy = selectedPageCtn.outerHeight() / 2;
-          }
-          common.utils.updatePosition(target, offsetCenter.cx - target.outerWidth()/2, offsetCenter.cy - target.outerHeight()/2);
-          if (hasH) {
-            alLines.addClass('show-h').children('.h').attr('width', selectedPageCtn.outerWidth() + 'px');
-          } else {
-            alLines.removeClass('show-h');
-          }
-          if (hasV) {
-            alLines.addClass('show-v').children('.v').attr('height', selectedPageCtn.outerHeight() + 'px');
-          } else {
-            alLines.removeClass('show-v');
-          }
-        },
-        onend: function (event) {
-          alLines.remove().removeClass('show-h show-v');
-        }
-      });
       return node.css(cssOptions || {}).addClass('element');
     }
 
@@ -539,9 +526,6 @@
     function addText() {
       var textNode = createNode('div');
       textNode.addClass('text').data('type', 'text').find('.inner').text('ini canvas canvas ini');
-      if (activeEl) {
-        setElActive(activeEl, false);
-      }
       setElActive(textNode, true);
       document.execCommand('selectAll', false);
     }
@@ -549,9 +533,6 @@
     function addImg(imgSrc) {
       var img = new Image();
       img.src = imgSrc;
-      if (activeEl) {
-        setElActive(activeEl, false);
-      }
       img.onload = function () {
         var imgNode = createNode('div');
         imgNode.addClass('image').data('type', 'image').find('.inner').append(img);
@@ -566,15 +547,44 @@
     }
 
     function addComp(args) {
-      if (activeEl) {
-        setElActive(activeEl, false);
-      }
       args = args || {};
       var htm = args.html;
       var type = args.type;
       var compNode = createNode('div');
-      compNode.addClass(type).data('type', type).find('.inner').append(htm);
+      compNode.addClass(type).addClass('comp').data('type', type).find('.inner').append(htm);
       setElActive(compNode, true);
+    }
+
+    function addAudio(args) {
+      var loop = args.loop;
+      var autoplay = args.autoplay;
+      var src = args.src;
+      src = decodeURIComponent(src);
+
+      var audioWrap = document.createElement('div');
+      audioWrap.className = 'p-2';
+      var audio = document.createElement('audio');
+      audio.src = src;
+      audio.loop = loop;
+      audio.autoplay = autoplay;
+      audio.controls = true;
+
+      audioWrap.appendChild(audio);
+
+      var audioNode = createNode('div');
+      audioNode.addClass('audio').data('type', 'audio').find('.inner').append(audioWrap.outerHTML);
+      setElActive(audioNode, true);
+    }
+
+    function addVideo(args) {
+      var embedCode = args.embedCode;
+      var videoWrap = document.createElement('div');
+      videoWrap.className = 'p-2';
+      videoWrap.innerHTML = embedCode;
+
+      var videoNode = createNode('div');
+      videoNode.addClass('video').data('type', 'video').find('.inner').append(videoWrap.outerHTML);
+      setElActive(videoNode, true);
     }
 
     /**
@@ -585,6 +595,9 @@
     function addNewItem(command, extra) {
       if (!selectedPageCtn) {
         return;
+      }
+      if (activeEl) {
+        setElActive(activeEl, false);
       }
       switch (command) {
         case common.commands.ADD_TEXT:
@@ -598,6 +611,12 @@
           break;
         case common.commands.ADD_COMP:
           addComp(extra);
+          break;
+        case common.commands.ADD_AUDIO:
+          addAudio(extra);
+          break;
+        case common.commands.ADD_VIDEO:
+          addVideo(extra);
           break;
         default:
           break;
@@ -628,7 +647,7 @@
           $(document.body).removeClass('slidebar-open');
         }
         uiCtrl.publish('load-' + toggleId);
-        canvasCtrl.publish('changePageSize');
+        // canvasCtrl.publish('changePageSize');
       }
     }
 
@@ -636,7 +655,7 @@
     closeBtn.click(function () {
       $(this).closest('.slidebar').removeClass('show');
       $(document.body).removeClass('slidebar-open');
-      canvasCtrl.publish('changePageSize');
+      // canvasCtrl.publish('changePageSize');
     });
   })(canvasCtrl);
 
@@ -655,6 +674,7 @@
     var fb;
     var fbContainer = $('#form-builder-container');
     var compStore = $('#popular-components');
+    var snackbarContainer = document.querySelector('#demo-snackbar-example');
 
     /**
      * When right-bottom add-page button is clicked
@@ -665,7 +685,8 @@
       if (lastPage.length) {
         pageEl.css('top', lastPage.position().top + lastPage.height() + 75);
       }
-      canvasPages.append(pageEl);
+      pageEl.attr('id', 'page-' + new Date().getTime());
+      canvasPages.children('#pages').append(pageEl);
       canvasCtrl.publish('addPage', pageEl);
       canvasCtrl.publish('changePageSize');
     }
@@ -678,9 +699,8 @@
 
     function showHotTools(options) {
       options = options || {};
-      console.log(options);
       if (options.action) {
-        hotTools.filter('.'+options.type).addClass('show');
+        hotTools.filter('.' + options.type).addClass('show');
       } else {
         hotTools.removeClass('show');
       }
@@ -817,7 +837,7 @@
 
     function loadColorPlatte() {
       var colors = ['#2d0921', '#c5c159', '#ffc0cb', '#012d5a', '#ad0725', '#913053', '#59112c',
-        '#37a2b2', '#99ffdd', '#aaf1be', '#000000', '##f97508', '#66217e', '#ffe5fc', '#e5d0d7', '#beffab', '#abbeff', '#c2abff'];
+        '#37a2b2', '#99ffdd', '#aaf1be', '#000000', '#f97508', '#66217e', '#ffe5fc', '#e5d0d7', '#beffab', '#abbeff', '#c2abff'];
       var len = colors.length;
       for (var i = 0; i < len; i++) {
         appendColorPlatte(colors[i]);
@@ -836,19 +856,22 @@
 
     function loadSpecialImages() {
       var images = [
-        'https://static.vecteezy.com/system/resources/previews/000/101/241/non_2x/free-abstract-background-4-vector.jpg',
+        'http://www.amazingwallpaperz.com/wp-content/uploads/Abstract-Painting-Wallpaper-Mobile-Phones.jpg',
         'https://static.pexels.com/photos/5836/yellow-metal-design-decoration.jpg',
-        'http://desk.fd.zol-img.com.cn/t_s960x600c5/g5/M00/02/0A/ChMkJlbKz3qIZf6CAAMnlgwlzEQAALJVgNT65cAAyeu011.jpg',
+        'http://www.cianellistudios.com/images/abstract-paintings/abstract-paintings-splash.jpg',
         'http://img3.xiazaizhijia.com/walls/20161209/1920x1080_e33062551f5890f.jpg',
         'http://4493bz.1985t.com/uploads/allimg/141014/3-141014100632.jpg',
         'http://4493bz.1985t.com/uploads/allimg/150722/1-150H2142Q0.jpg',
         'http://pic1.win4000.com/wallpaper/1/50445a0a38168.jpg',
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQ2KswMQFXWbBRveCUXt0frPjK3OKhNIaDwbsRf_0xPdyVBPr46g',
+        'https://inspirationseek.com/wp-content/uploads/2014/06/Art-Abstract-Painting.jpg',
         'http://www.wmpic.me/wp-content/uploads/2013/12/20131225172517256.jpg',
-        'http://4493bz.1985t.com/uploads/allimg/150127/4-15012G02139.jpg',
+        'http://www.amazingwallpaperz.com/wp-content/uploads/Abstract-Painting-Background-HD-Wallpapers.jpg',
         'images/comp_zard_purple.jpg',
         'images/comp_zard_smile.png',
         'images/comp_zard_smile_wide.jpg',
+        'https://images.fineartamerica.com/images-medium-large-5/grid-3-jane-davies.jpg',
+        'http://www.artworkcanvas.com/images/388_02.jpg',
+
       ];
       var imgNum = images.length;
       for (var i = 0; i < imgNum; i++) {
@@ -912,7 +935,7 @@
         } else if (target.closest('.submit').length) {
           var rndHTML = getRenderedHTML(fb.actions.getData('xml')) || '';
           if (!rndHTML) {
-            // TODO: remind user to add some fields
+            showWarning('开始制作表单吧');
           } else {
             canvasCtrl.publish('addNewItem', common.commands.ADD_FORM, rndHTML);
             fb.actions.clearFields();
@@ -920,6 +943,15 @@
           }
         }
       }
+    }
+
+    function showWarning(warning) {
+      var data = {
+        message: warning,
+        timeout: 2000,
+        actionHandler: null
+      };
+      snackbarContainer.MaterialSnackbar.showSnackbar(data);
     }
 
     function getRenderedHTML(formData) {
@@ -934,6 +966,7 @@
 
     function onExpOptsClick(event) {
       var target = $(event.target);
+      canvasCtrl.publish('blurActiveEl');
       if (target.is('.dl')) {
         dlHTML();
       } else if (target.is('.print')) {
@@ -943,15 +976,43 @@
 
     function initializeCtxMenu() {
       $.contextMenu({
-        selector: '#overlays .element',
+        selector: '#canvas-pages .page',
         items: {
-          OK: {
-            name: "确定", className: 'dropdown-item', callback: function () {
+          clone: {
+            name: "复制页面", callback: function () {
               canvasCtrl.publish('blurActiveEl');
+              this.clone(true).removeClass('selected context-menu-active').insertAfter(this);
+              canvasCtrl.publish('rearrangePages');
+            }
+          },
+          applyBgToAll: {
+            name: "应用页面背景到全部", callback: function () {
+              this.siblings('.page').find('.elements').css('background', this.find('.elements').css('background'));
+            }
+          },
+          removePage: {
+            name: '删除本页', callback: function () {
+              canvasCtrl.publish('removeItem', this);
             }
           }
         },
-        className: 'dropdown-menu'
+        animation: {duration: 100, show: 'fadeIn', hide: 'fadeOut'}
+      });
+      $.contextMenu({
+        selector: '#overlays .element',
+        items: {
+          OK: {
+            name: "确定", callback: function () {
+              canvasCtrl.publish('blurActiveEl');
+            }
+          },
+          remove: {
+            name: "移除", callback: function () {
+              canvasCtrl.publish('removeItem');
+            }
+          }
+        },
+        animation: {duration: 100, show: 'fadeIn', hide: 'fadeOut'}
       });
       $.contextMenu({
         // define which elements trigger this menu
@@ -959,42 +1020,41 @@
         // define the elements of the menu
         items: {
           sendUpward: {
-            name: "往上一层", className: 'dropdown-item', callback: function (key) {
+            name: "往上一层", callback: function () {
               if (this.next('.element').length) {
                 this.insertAfter(this.next('.element'));
               }
             }
           },
           sendDownward: {
-            name: "往下一层", className: 'dropdown-item', callback: function (key) {
+            name: "往下一层", callback: function () {
               if (this.prev('.element')) {
                 this.insertBefore(this.prev('.element'));
               }
             }
           },
           sendTop: {
-            name: "移向顶层", className: 'dropdown-item', callback: function (key) {
+            name: "移向顶层", callback: function () {
               this.closest('.elements').append(this);
             }
           },
           sendBottom: {
-            name: "移向底部", className: 'dropdown-item', callback: function (key) {
+            name: "移向底部", callback: function () {
               this.closest('.elements').prepend(this);
             }
           },
           clone: {
-            name: "复制", className: 'dropdown-item', callback: function (key) {
+            name: "复制", callback: function () {
               this.clone().removeClass('context-menu-active').insertAfter(this);
             }
           },
           removeItem: {
-            name: "移除", className: 'dropdown-item', callback: function (key) {
+            name: "移除", callback: function () {
               canvasCtrl.publish('removeItem', this);
             }
           }
         },
-        className: 'dropdown-menu'
-        // there's more, have a look at the demos and docs...
+        animation: {duration: 100, show: 'fadeIn', hide: 'fadeOut'}
       });
     }
 
@@ -1020,12 +1080,63 @@
       var target = $(event.target);
       var component = target.closest('.component');
       if (component.length) {
-        var comp = component.data('component');
-        var htm = $('#tpl--'+comp).html();
-        canvasCtrl.publish('addNewItem', common.commands.ADD_COMP, {html: htm, type: comp});
+        var compType = component.data('component');
+        var htm = $('#tpl--' + compType).html();
+        if (htm) {
+          canvasCtrl.publish('addNewItem', common.commands.ADD_COMP, {html: htm, type: compType});
+        }
       }
     }
 
+    function installClickFocusBtns() {
+      $('.click-focus').on('click', function () {
+        var $self = $(this);
+        $self.closest('.component-container').addClass('focus');
+      });
+      $('.click-un-focus').on('click', function () {
+        var $self = $(this);
+        $self.closest('.component-container').removeClass('focus');
+      });
+    }
+
+    function installMediaComp() {
+      var audioSrc;
+      var autoplayAudio;
+      var loopAudio;
+      var embedVideoCode;
+      $('#create-audio').on('click', function () {
+        audioSrc = $('#music-src').val();
+        if (!audioSrc) {
+          showWarning('告诉我们音乐链接吧');
+          return;
+        }
+        autoplayAudio = $('label[for="autoplay-cb"]').hasClass('is-checked');
+        loopAudio = $('label[for="loop-cb"]').hasClass('is-checked');
+        canvasCtrl.publish('addNewItem', common.commands.ADD_AUDIO, {
+          src: audioSrc,
+          loop: loopAudio,
+          autoplay: autoplayAudio
+        });
+      });
+      $('#create-video-embed').on('click', function () {
+        embedVideoCode = $('#embed-video-code').val();
+        if (!embedVideoCode) {
+          showWarning('告诉我们嵌入视频代码吧');
+          return;
+        }
+        canvasCtrl.publish('addNewItem', common.commands.ADD_VIDEO, {embedCode: embedVideoCode});
+      });
+    }
+
+    function installAnimationTool() {
+      var animation;
+      $('#activate-animation').on('click', function () {
+        animation = $('#select-animation').val();
+        canvasCtrl.publish('applyAnimation', animation);
+      });
+    }
+
+    uiCtrl.subscribe('showWarning', showWarning);
     uiCtrl.subscribe('showHotTools', showHotTools);
     uiCtrl.subscribe('updatePageSizeMd', updatePageSizeMd);
     uiCtrl.subscribe('load-image-lib', loadImgLib);
@@ -1036,6 +1147,9 @@
     imgLib.on('click', onImgLibClick);
     compStore.on('click', onCompStoreClick);
     installPickers();
+    installClickFocusBtns();
+    installMediaComp();
+    installAnimationTool();
     doExpOpts.click(onExpOptsClick);
     fbContainer.on('shown.bs.modal', initializeFormBuilder).on('click', onFBContainerClick);
     initializeCtxMenu();

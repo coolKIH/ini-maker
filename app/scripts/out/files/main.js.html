@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>main.js</title>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/3.9.1/build/cssgrids/cssgrids-min.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+    <link rel="icon" href="../assets/favicon.ico">
+    <script src="http://yui.yahooapis.com/combo?3.9.1/build/yui/yui-min.js"></script>
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+                <h1><img src="../assets/css/logo.png" title="" width="117" height="52"></h1>
+        </div>
+        <div class="yui3-u-1-4 version">
+            <em>API Docs for: </em>
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+                    <h2 class="off-left">APIs</h2>
+                    <div id="api-tabview" class="tabview">
+                        <ul class="tabs">
+                            <li><a href="#api-classes">Classes</a></li>
+                            <li><a href="#api-modules">Modules</a></li>
+                        </ul>
+                
+                        <div id="api-tabview-filter">
+                            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+                        </div>
+                
+                        <div id="api-tabview-panel">
+                            <ul id="api-classes" class="apis classes">
+                            </ul>
+                
+                
+                            <ul id="api-modules" class="apis modules">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+                    Show:
+                    <label for="api-show-inherited">
+                        <input type="checkbox" id="api-show-inherited" checked>
+                        Inherited
+                    </label>
+            
+                    <label for="api-show-protected">
+                        <input type="checkbox" id="api-show-protected">
+                        Protected
+                    </label>
+            
+                    <label for="api-show-private">
+                        <input type="checkbox" id="api-show-private">
+                        Private
+                    </label>
+                    <label for="api-show-deprecated">
+                        <input type="checkbox" id="api-show-deprecated">
+                        Deprecated
+                    </label>
+            
+                </div>
+            
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+<h1 class="file-heading">File: main.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+/* eslint-env browser */
+/* globals Mediator, interact */
+(function () {
+  &#x27;use strict&#x27;;
+
+  String.prototype.replaceAll = function (search, replacement) {
+    return this.replace(new RegExp(search, &#x27;g&#x27;), replacement);
+  };
+  var common = {
+    commands: {
+      ADD_TEXT: &#x27;add-text&#x27;,
+      ADD_IMG: &#x27;add-img&#x27;,
+      ADD_COLOR: &#x27;add-color&#x27;,
+      ADD_FORM: &#x27;add-form&#x27;,
+      ADD_COMP: &#x27;add-comp&#x27;,
+      ADD_AUDIO: &#x27;add-audio&#x27;,
+      ADD_VIDEO: &#x27;add-video&#x27;
+    },
+    utils: {
+      getElOffsetCenter: function (target) {
+        return {
+          cx: ~~(target.attr(&#x27;data-x&#x27;) || 0) + target.outerWidth() / 2,
+          cy: ~~(target.attr(&#x27;data-y&#x27;) || 0) + target.outerHeight() / 2
+        }
+      },
+      updatePosition: function (target, x, y) {
+        this.setCSSTransform2D(target, x, y);
+        target.attr(&#x27;data-x&#x27;, x).attr(&#x27;data-y&#x27;, y);
+      },
+      updateSize: function (target, w, h) {
+        target.outerWidth(w);
+        target.outerHeight(h);
+      },
+      setCSSTransform2D: function (target, x, y) {
+        target.css(
+          {
+            &#x27;-webkit-transform&#x27;: &#x27;translate(&#x27; + x + &#x27;px,&#x27; + y + &#x27;px)&#x27;,
+            &#x27;transform&#x27;: &#x27;translate(&#x27; + x + &#x27;px,&#x27; + y + &#x27;px)&#x27;
+          });
+      },
+      setCtnEditable: function (htmlEl, setting) {
+        $(htmlEl).find(&#x27;.inner&#x27;).attr(&#x27;contenteditable&#x27;, setting);
+      },
+      docExecCmd: function (command, ui, options) {
+        return document.execCommand(command, ui || false, options || null);
+      },
+      makeElResizable: function (selector, options) {
+        var self = this;
+        options = options || {};
+        interact(selector)
+          .resizable({
+            preserveAspectRatio: options.preserveAspectRatio || false,
+            edges: {
+              left: options.left || false,
+              top: options.top || false,
+              right: options.right || false,
+              bottom: options.bottom || false
+            },
+            invert: options.invert || &#x27;reposition&#x27;
+          })
+          .on(&#x27;resizemove&#x27;, function (event) {
+            var target = $(event.target);
+            var x = parseFloat(target.attr(&#x27;data-x&#x27;) || 0);
+            var y = parseFloat(target.attr(&#x27;data-y&#x27;) || 0);
+
+            target.width(event.rect.width);
+            target.height(event.rect.height);
+
+            x += event.deltaRect.left;
+            y += event.deltaRect.top;
+
+            self.updatePosition(target, x, y);
+
+            if (options.action &amp;&amp; options.action === &#x27;resizeSelected&#x27;) {
+              self.updatePosition(target.siblings(&#x27;.element&#x27;), x, y);
+              self.updateSize(
+                target.siblings(&#x27;.element&#x27;), target.outerWidth(), target.outerHeight()
+              );
+            }
+          });
+      },
+      makeElDraggable: function (selector, options) {
+        options = options || {};
+        var self = this;
+        interact(selector, {
+          context: options.context || document
+        })
+          .draggable({
+            inertia: options.inertia || false,
+            autoScroll: options.autoScroll || true,
+            onstart: function (event) {
+              event.target.style.pointerEvents = &#x27;none&#x27;;
+              event.target.classList.add(&#x27;dragging&#x27;);
+              if (&#x27;onstart&#x27; in options) {
+                options[&#x27;onstart&#x27;](event);
+              }
+            },
+            onmove: function (event) {
+              var target = $(event.target);
+              var x = parseFloat(target.attr(&#x27;data-x&#x27;) || 0) + event.dx;
+              var y = parseFloat(target.attr(&#x27;data-y&#x27;) || 0) + event.dy;
+
+              self.updatePosition(target, x, y);
+              if (&#x27;onmove&#x27; in options) {
+                options[&#x27;onmove&#x27;](event);
+              }
+              if (options.action &amp;&amp; options.action === &#x27;moveSelected&#x27;) {
+                self.updatePosition(target.siblings(&#x27;.element&#x27;), parseFloat(target.attr(&#x27;data-x&#x27;) || 0), parseFloat(target.attr(&#x27;data-y&#x27;) || 0));
+              }
+            },
+            onend: function (event) {
+              event.target.style.pointerEvents = &#x27;auto&#x27;;
+              event.target.classList.remove(&#x27;dragging&#x27;);
+              if (&#x27;onend&#x27; in options) {
+                options[&#x27;onend&#x27;](event);
+              }
+            }
+          });
+      },
+      getElemFromTpl: function (tplSelector) {
+        return $(
+          $.parseHTML($(tplSelector).html().trim())
+        );
+      },
+      getPageHTML: function (selector, template, cb) {
+        var pageCtn = $(selector);
+        if (!pageCtn.length) {
+          return;
+        }
+        $.get(template, function (response) {
+          for (var i = 0; i &lt; pageCtn.length; i++) {
+            var dcm = document.createElement(&#x27;html&#x27;);
+            var elHtml = pageCtn.get(i).outerHTML;
+            dcm.innerHTML = response;
+            var p = dcm.querySelector(&#x27;.page&#x27;);
+            p.style.width = pageCtn.get(i).clientWidth + &#x27;px&#x27;;
+            p.style.height = pageCtn.get(i).clientHeight + &#x27;px&#x27;;
+            p.innerHTML = elHtml;
+            cb(dcm.outerHTML);
+          }
+        });
+      },
+      download: function (filename, mimeType, text) {
+        var link = document.createElement(&#x27;a&#x27;);
+        mimeType = mimeType || &#x27;text/plain&#x27;;
+        link.setAttribute(&#x27;download&#x27;, filename);
+        link.setAttribute(&#x27;href&#x27;, &#x27;data:&#x27; + mimeType + &#x27;;charset=utf-8,&#x27; + encodeURIComponent(text));
+        link.click();
+      },
+      print: function (text, win) {
+        var hmlCtn = (text.match(/&lt;html&gt;((\s|.)*)&lt;\/html&gt;/)[1]);
+        win.document.write(hmlCtn);
+        win.document.close();
+        win.focus();
+        var waitLoadId = setInterval(function () {
+          if (win.document.querySelector(&#x27;.elements&#x27;)) {
+            win.print();
+            clearInterval(waitLoadId);
+            win.close();
+          }
+        }, 200);
+      }
+    }
+  };
+
+  var canvasCtrl = new Mediator();
+  var uiCtrl = new Mediator();
+
+  (function (canvasCtrl) {
+    var overlays = $(&#x27;#overlays&#x27;);
+    var selectionBox = common.utils.getElemFromTpl(&#x27;#tpl--selection-box&#x27;);
+    var selectedPageCtn;
+    var activeEl;
+    var alLines = $(&#x27;#alignment-lines&#x27;);
+    alLines.remove();
+
+    /**
+     * When anything but currently active element is clicked,
+     * the active element will be inactive.
+     * @param {Event} event - Get touched target from this event
+     */
+    function onCanvasPageClick(event) {
+      uiCtrl.publish(&#x27;updatePageSizeMd&#x27;, $(this).width(), $(this).height());
+      $(this).addClass(&#x27;selected&#x27;).siblings(&#x27;.page&#x27;).removeClass(&#x27;selected&#x27;);
+      selectedPageCtn = $(this).find(&#x27;.elements&#x27;);
+      var target = $(event.target).closest(&#x27;.element&#x27;);
+      if (activeEl) {
+        if (!target.is(activeEl)) {
+          setElActive(activeEl, false);
+        }
+      }
+      if (target.is(&#x27;.element&#x27;)) {
+        setElActive(target, true);
+      }
+    }
+
+    /**
+     * When subscribed &#x27;addPage&#x27; event is published
+     * @param {object} pageEl - jQuery object of page elem
+     */
+    function onAddPage(pageEl) {
+      pageEl.click(onCanvasPageClick);
+      pageEl.click();
+    }
+
+    function onChangePageSize(width, height) {
+      if (activeEl) {
+        setElActive(activeEl, false);
+      }
+      if (selectedPageCtn) {
+        var page = selectedPageCtn.closest(&#x27;.page&#x27;);
+        if (width &amp;&amp; height) {
+          page.width(width).height(height);
+        } else {
+          page.width(page.width()).height(page.height());
+        }
+      }
+      var left = ($(&#x27;#canvas-pages&#x27;).outerWidth() - page.width()) / 2;
+      left = left &gt; 0 ? left : 0;
+      page.css({
+        left: left
+      });
+    }
+
+    function onRmItem(target) {
+      if (target) {
+        target.remove();
+        if (target.is(&#x27;.page&#x27;)) {
+          rearrangePages();
+          if (target.is(selectedPageCtn.closest(&#x27;.page&#x27;))) {
+            selectedPageCtn = null;
+          }
+        }
+      } else {
+        if (activeEl) {
+          activeEl.remove();
+          activeEl = null;
+          uiCtrl.publish(&#x27;showHotTools&#x27;, {action: false});
+        } else if (selectedPageCtn) {
+          selectedPageCtn.closest(&#x27;.page&#x27;).remove();
+          selectedPageCtn = null;
+          rearrangePages();
+        }
+      }
+      selectionBox.remove();
+    }
+
+    function rearrangePages() {
+      var offsetY = 0;
+      $(&#x27;.page&#x27;).each(function () {
+        $(this).css(&#x27;top&#x27;, offsetY);
+        offsetY += $(this).height() + 75;
+      });
+    }
+
+    function changeBg(imgSrc) {
+      var bgCSSObj = {
+        &#x27;background-image&#x27;: &#x27;url(&#x27; + imgSrc + &#x27;)&#x27;
+      };
+      if (activeEl) {
+        if (activeEl.is(&#x27;.comp.card-wide&#x27;) || activeEl.is(&#x27;.comp.card-square&#x27;)) {
+          activeEl.find(&#x27;.mdl-card__title&#x27;).css(bgCSSObj);
+        } else if (activeEl.is(&#x27;.comp.card-note&#x27;) || activeEl.is(&#x27;.comp.card-tag&#x27;)) {
+          activeEl.find(&#x27;.mdl-card&#x27;).css(bgCSSObj);
+        } else {
+          activeEl.find(&#x27;.inner&#x27;).css(bgCSSObj);
+        }
+      } else if (selectedPageCtn) {
+        selectedPageCtn.css(bgCSSObj);
+      }
+    }
+
+    function changeBgColor(colorCode) {
+      var bgCSSObj = {
+        &#x27;background-color&#x27;: colorCode,
+        &#x27;background-image&#x27;: &#x27;url()&#x27;
+      };
+      if (activeEl) {
+        if (activeEl.is(&#x27;.comp.card-wide&#x27;) || activeEl.is(&#x27;.comp.card-square&#x27;)) {
+          activeEl.find(&#x27;.mdl-card__title&#x27;).css(bgCSSObj);
+        } else if (activeEl.is(&#x27;.comp.card-note&#x27;) || activeEl.is(&#x27;.comp.card-tag&#x27;)) {
+          activeEl.find(&#x27;.mdl-card&#x27;).css(bgCSSObj);
+        } else {
+          activeEl.find(&#x27;.inner&#x27;).css(bgCSSObj);
+        }
+      } else if (selectedPageCtn) {
+        selectedPageCtn.css(bgCSSObj);
+      }
+    }
+
+    function blurActiveEl() {
+      if (activeEl) {
+        setElActive(activeEl, false);
+      }
+    }
+
+    function applyAnimation(x) {
+      if (activeEl) {
+        activeEl.find(&#x27;.inner&#x27;).removeClass().addClass(&#x27;inner animated&#x27;).addClass(x);
+      } else {
+        uiCtrl.publish(&#x27;showWarning&#x27;, &#x27;先选择想要应用动画的物件&#x27;);
+      }
+    }
+
+    canvasCtrl.subscribe(&#x27;addPage&#x27;, onAddPage);
+    canvasCtrl.subscribe(&#x27;removeItem&#x27;, onRmItem);
+    canvasCtrl.subscribe(&#x27;addNewItem&#x27;, addNewItem);
+    canvasCtrl.subscribe(&#x27;changePageSize&#x27;, onChangePageSize);
+    canvasCtrl.subscribe(&#x27;changeBg&#x27;, changeBg);
+    canvasCtrl.subscribe(&#x27;changeBgColor&#x27;, changeBgColor);
+    canvasCtrl.subscribe(&#x27;blurActiveEl&#x27;, blurActiveEl);
+    canvasCtrl.subscribe(&#x27;rearrangePages&#x27;, rearrangePages);
+    canvasCtrl.subscribe(&#x27;applyAnimation&#x27;, applyAnimation);
+
+    canvasCtrl.getActiveEl = function () {
+      return activeEl;
+    };
+    canvasCtrl.getSelectedPageCtn = function () {
+      return selectedPageCtn;
+    };
+
+    common.utils.makeElResizable(&#x27;.page&#x27;,
+      {right: &#x27;.resize-handle&#x27;, bottom: &#x27;.resize-handle&#x27;});
+    common.utils.makeElResizable(&#x27;.selection-box.text, .selection-box.form, .selection-box.video&#x27;, {
+      top: &#x27;.t, .lt, .rt&#x27;,
+      right: &#x27;.r, .rt, .rb&#x27;,
+      bottom: &#x27;.b, .lb, .rb&#x27;,
+      left: &#x27;.l, .lt, .lb&#x27;,
+      action: &#x27;resizeSelected&#x27;
+    });
+    common.utils.makeElResizable(&#x27;.selection-box.image&#x27;, {
+      preserveAspectRatio: true,
+      top: &#x27;.t, .lt, .rt&#x27;,
+      right: &#x27;.r, .rt, .rb&#x27;,
+      bottom: &#x27;.b, .lb, .rb&#x27;,
+      left: &#x27;.l, .lt, .lb&#x27;,
+      action: &#x27;resizeSelected&#x27;
+    });
+    common.utils.makeElDraggable(&#x27;.selection-box&#x27;, {
+      action: &#x27;moveSelected&#x27;,
+      onstart: function (event) {
+        alLines.appendTo(selectedPageCtn.closest(&#x27;.page&#x27;));
+      },
+      onmove: function (event) {
+        var target = $(event.target);
+        var offsetCenter = common.utils.getElOffsetCenter(target);
+        var pagePos = selectedPageCtn.closest(&#x27;.page&#x27;).position();
+        var dx = pagePos.left;
+        var dy = pagePos.top;
+        offsetCenter.cx -= dx;
+        offsetCenter.cy -= dy;
+        var hasH = false, hasV = false;
+        selectedPageCtn.find(&#x27;.element&#x27;).each(function () {
+          var siblingOC = common.utils.getElOffsetCenter($(this));
+          if (Math.abs(siblingOC.cx - offsetCenter.cx) &lt;= 2) {
+            hasV = true;
+            common.utils.updatePosition(alLines.children(&#x27;.v&#x27;), siblingOC.cx, 0);
+            offsetCenter.cx = siblingOC.cx;
+          }
+          if (Math.abs(siblingOC.cy - offsetCenter.cy) &lt;= 2) {
+            hasH = true;
+            common.utils.updatePosition(alLines.children(&#x27;.h&#x27;), 0, siblingOC.cy);
+            offsetCenter.cy = siblingOC.cy;
+          }
+        });
+        if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth() / 2) &lt;= 2) {
+          hasV = true;
+          common.utils.updatePosition(alLines.children(&#x27;.v&#x27;), selectedPageCtn.outerWidth() / 2, 0);
+          offsetCenter.cx = selectedPageCtn.outerWidth() / 2;
+        }
+        if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight() / 2) &lt;= 2) {
+          hasH = true;
+          common.utils.updatePosition(alLines.children(&#x27;.h&#x27;), 0, selectedPageCtn.outerHeight() / 2);
+          offsetCenter.cy = selectedPageCtn.outerHeight() / 2;
+        }
+        common.utils.updatePosition(target, offsetCenter.cx + dx - target.outerWidth() / 2, offsetCenter.cy + dy - target.outerHeight() / 2);
+        if (hasH) {
+          alLines.addClass(&#x27;show-h&#x27;).children(&#x27;.h&#x27;).attr(&#x27;width&#x27;, selectedPageCtn.outerWidth() + &#x27;px&#x27;);
+        } else {
+          alLines.removeClass(&#x27;show-h&#x27;);
+        }
+        if (hasV) {
+          alLines.addClass(&#x27;show-v&#x27;).children(&#x27;.v&#x27;).attr(&#x27;height&#x27;, selectedPageCtn.outerHeight() + &#x27;px&#x27;);
+        } else {
+          alLines.removeClass(&#x27;show-v&#x27;);
+        }
+      },
+      onend: function (event) {
+        alLines.remove().removeClass(&#x27;show-h show-v&#x27;);
+      }
+    });
+    common.utils.makeElDraggable(&#x27;.element&#x27;, {
+      context: document.getElementById(&#x27;pages&#x27;),
+      onstart: function (event) {
+        alLines.appendTo(selectedPageCtn.closest(&#x27;.page&#x27;));
+      },
+      onmove: function (event) {
+        var target = $(event.target);
+        var offsetCenter = common.utils.getElOffsetCenter(target);
+        var hasH = false, hasV = false;
+        target.siblings(&#x27;.element&#x27;).each(function () {
+          var siblingOC = common.utils.getElOffsetCenter($(this));
+          if (Math.abs(siblingOC.cx - offsetCenter.cx) &lt;= 2) {
+            hasV = true;
+            common.utils.updatePosition(alLines.children(&#x27;.v&#x27;), siblingOC.cx, 0);
+            offsetCenter.cx = siblingOC.cx;
+          }
+          if (Math.abs(siblingOC.cy - offsetCenter.cy) &lt;= 2) {
+            hasH = true;
+            common.utils.updatePosition(alLines.children(&#x27;.h&#x27;), 0, siblingOC.cy);
+            offsetCenter.cy = siblingOC.cy;
+          }
+        });
+        if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth() / 2) &lt;= 2) {
+          hasV = true;
+          common.utils.updatePosition(alLines.children(&#x27;.v&#x27;), selectedPageCtn.outerWidth() / 2, 0);
+          offsetCenter.cx = selectedPageCtn.outerWidth() / 2;
+        }
+        if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight() / 2) &lt;= 2) {
+          hasH = true;
+          common.utils.updatePosition(alLines.children(&#x27;.h&#x27;), 0, selectedPageCtn.outerHeight() / 2);
+          offsetCenter.cy = selectedPageCtn.outerHeight() / 2;
+        }
+        common.utils.updatePosition(target, offsetCenter.cx - target.outerWidth() / 2, offsetCenter.cy - target.outerHeight() / 2);
+        if (hasH) {
+          alLines.addClass(&#x27;show-h&#x27;).children(&#x27;.h&#x27;).attr(&#x27;width&#x27;, selectedPageCtn.outerWidth() + &#x27;px&#x27;);
+        } else {
+          alLines.removeClass(&#x27;show-h&#x27;);
+        }
+        if (hasV) {
+          alLines.addClass(&#x27;show-v&#x27;).children(&#x27;.v&#x27;).attr(&#x27;height&#x27;, selectedPageCtn.outerHeight() + &#x27;px&#x27;);
+        } else {
+          alLines.removeClass(&#x27;show-v&#x27;);
+        }
+      },
+      onend: function (event) {
+        alLines.remove().removeClass(&#x27;show-h show-v&#x27;);
+      }
+    });
+
+    /**
+     * When an element is focused/blur, show/hide the selection box
+     * @param {object} elem - jQuery object
+     * @param {boolean} wrap - show or hide the selection box
+     */
+    function setWrapSelectionBox(elem, wrap) {
+      var ctt = elem.data(&#x27;type&#x27;);
+      selectionBox.removeClass(&#x27;text image form&#x27;).addClass(ctt);
+      wrap = typeof wrap === &#x27;undefined&#x27; ? true : wrap;
+      var x = parseFloat(elem.attr(&#x27;data-x&#x27;) || 0);
+      var y = parseFloat(elem.attr(&#x27;data-y&#x27;) || 0);
+
+      var pagePos = selectedPageCtn.closest(&#x27;.page&#x27;).position();
+      var dx = pagePos.left;
+      var dy = pagePos.top;
+      if (wrap) {
+        x += dx;
+        y += dy;
+
+        elem.prevElem = elem.prev(&#x27;.element&#x27;);
+        elem.nextElem = elem.next(&#x27;.element&#x27;);
+
+        overlays.append(selectionBox, elem);
+        common.utils.updateSize(selectionBox, elem.outerWidth(), elem.outerHeight());
+        common.utils.updateSize(elem, elem.outerWidth(), elem.outerHeight());
+      } else {
+        x -= dx;
+        y -= dy;
+        selectionBox.remove();
+        if (elem.prevElem &amp;&amp; elem.prevElem.length) {
+          elem.insertAfter(elem.prevElem);
+        } else if (elem.nextElem &amp;&amp; elem.nextElem.length) {
+          elem.insertBefore(elem.nextElem);
+        } else {
+          selectedPageCtn.append(elem);
+        }
+      }
+      common.utils.updatePosition(elem, x, y);
+      common.utils.updatePosition(selectionBox, x, y);
+    }
+
+    /**
+     * Active elements are meant to be selected
+     * @param {object} elem - jQuery object
+     * @param {boolean} active - make the elem active or inactive
+     */
+    function setElActive(elem, active) {
+      elem = $(elem);
+      if (active) {
+        activeEl = elem.addClass(&#x27;active&#x27;);
+        setWrapSelectionBox(activeEl);
+        if (activeEl.hasClass(&#x27;text&#x27;) || activeEl.hasClass(&#x27;comp&#x27;)) {
+          common.utils.setCtnEditable(activeEl, true);
+          elem.find(&#x27;.inner&#x27;).focus();
+        }
+        uiCtrl.publish(&#x27;showHotTools&#x27;, {action: true, type: activeEl.data(&#x27;type&#x27;)});
+      } else {
+        activeEl.removeClass(&#x27;active&#x27;);
+        setWrapSelectionBox(activeEl, false);
+        common.utils.setCtnEditable(activeEl, false);
+        activeEl = null;
+        uiCtrl.publish(&#x27;showHotTools&#x27;, {action: false});
+      }
+    }
+
+    /**
+     * Create new common node for specific use
+     * @param {string} nodeName - name of the node, mostly &#x27;div&#x27;
+     * @param {object} cssOptions - wrapped with css styles
+     * @return {object} - built jQuery object
+     */
+    function createNode(nodeName, cssOptions) {
+      var node = $(document.createElement(&#x27;div&#x27;));
+      var innerNode = $(document.createElement(nodeName)).addClass(&#x27;inner&#x27;);
+      node.append(innerNode);
+      return node.css(cssOptions || {}).addClass(&#x27;element&#x27;);
+    }
+
+    /**
+     * Create a new text element
+     */
+    function addText() {
+      var textNode = createNode(&#x27;div&#x27;);
+      textNode.addClass(&#x27;text&#x27;).data(&#x27;type&#x27;, &#x27;text&#x27;).find(&#x27;.inner&#x27;).text(&#x27;ini canvas canvas ini&#x27;);
+      setElActive(textNode, true);
+      document.execCommand(&#x27;selectAll&#x27;, false);
+    }
+
+    function addImg(imgSrc) {
+      var img = new Image();
+      img.src = imgSrc;
+      img.onload = function () {
+        var imgNode = createNode(&#x27;div&#x27;);
+        imgNode.addClass(&#x27;image&#x27;).data(&#x27;type&#x27;, &#x27;image&#x27;).find(&#x27;.inner&#x27;).append(img);
+        setElActive(imgNode, true);
+      };
+    }
+
+    function addForm(rndHTML) {
+      var formNode = createNode(&#x27;div&#x27;);
+      formNode.addClass(&#x27;form&#x27;).data(&#x27;type&#x27;, &#x27;form&#x27;).find(&#x27;.inner&#x27;).append(rndHTML);
+      setElActive(formNode, true);
+    }
+
+    function addComp(args) {
+      args = args || {};
+      var htm = args.html;
+      var type = args.type;
+      var compNode = createNode(&#x27;div&#x27;);
+      compNode.addClass(type).addClass(&#x27;comp&#x27;).data(&#x27;type&#x27;, type).find(&#x27;.inner&#x27;).append(htm);
+      setElActive(compNode, true);
+    }
+
+    function addAudio(args) {
+      var loop = args.loop;
+      var autoplay = args.autoplay;
+      var src = args.src;
+      src = decodeURIComponent(src);
+
+      var audioWrap = document.createElement(&#x27;div&#x27;);
+      audioWrap.className = &#x27;p-2&#x27;;
+      var audio = document.createElement(&#x27;audio&#x27;);
+      audio.src = src;
+      audio.loop = loop;
+      audio.autoplay = autoplay;
+      audio.controls = true;
+
+      audioWrap.appendChild(audio);
+
+      var audioNode = createNode(&#x27;div&#x27;);
+      audioNode.addClass(&#x27;audio&#x27;).data(&#x27;type&#x27;, &#x27;audio&#x27;).find(&#x27;.inner&#x27;).append(audioWrap.outerHTML);
+      setElActive(audioNode, true);
+    }
+
+    function addVideo(args) {
+      var embedCode = args.embedCode;
+      var videoWrap = document.createElement(&#x27;div&#x27;);
+      videoWrap.className = &#x27;p-2&#x27;;
+      videoWrap.innerHTML = embedCode;
+
+      var videoNode = createNode(&#x27;div&#x27;);
+      videoNode.addClass(&#x27;video&#x27;).data(&#x27;type&#x27;, &#x27;video&#x27;).find(&#x27;.inner&#x27;).append(videoWrap.outerHTML);
+      setElActive(videoNode, true);
+    }
+
+    /**
+     * Create any rich text element like text, pictures, etc
+     * @param {string} command - used to specifically create an element
+     * @param {string} extra - optional but sometimes we need
+     */
+    function addNewItem(command, extra) {
+      if (!selectedPageCtn) {
+        return;
+      }
+      if (activeEl) {
+        setElActive(activeEl, false);
+      }
+      switch (command) {
+        case common.commands.ADD_TEXT:
+          addText();
+          break;
+        case common.commands.ADD_IMG:
+          addImg(extra);
+          break;
+        case common.commands.ADD_FORM:
+          addForm(extra);
+          break;
+        case common.commands.ADD_COMP:
+          addComp(extra);
+          break;
+        case common.commands.ADD_AUDIO:
+          addAudio(extra);
+          break;
+        case common.commands.ADD_VIDEO:
+          addVideo(extra);
+          break;
+        default:
+          break;
+      }
+    }
+  })(canvasCtrl);
+
+  (function (canvasCtrl) {
+    var tbMain = $(&#x27;#tb--main&#x27;);
+    var closeBtn = $(&#x27;.close-btn&#x27;);
+
+    /**
+     * Handle it when user click a button on the main toolbar
+     */
+    function onMainTbItemClick() {
+      var targetEl = $(this);
+      var command = targetEl.attr(&#x27;data-command&#x27;);
+      if (command) {
+        canvasCtrl.publish(&#x27;addNewItem&#x27;, command);
+      }
+      var toggleId = targetEl.attr(&#x27;data-toggle-id&#x27;);
+      if (toggleId) {
+        var target = $(&#x27;#&#x27; + toggleId).toggleClass(&#x27;show&#x27;);
+        target.siblings(&#x27;.slidebar&#x27;).removeClass(&#x27;show&#x27;);
+        if (target.hasClass(&#x27;show&#x27;)) {
+          $(document.body).addClass(&#x27;slidebar-open&#x27;);
+        } else {
+          $(document.body).removeClass(&#x27;slidebar-open&#x27;);
+        }
+        uiCtrl.publish(&#x27;load-&#x27; + toggleId);
+        // canvasCtrl.publish(&#x27;changePageSize&#x27;);
+      }
+    }
+
+    tbMain.children().click(onMainTbItemClick);
+    closeBtn.click(function () {
+      $(this).closest(&#x27;.slidebar&#x27;).removeClass(&#x27;show&#x27;);
+      $(document.body).removeClass(&#x27;slidebar-open&#x27;);
+      // canvasCtrl.publish(&#x27;changePageSize&#x27;);
+    });
+  })(canvasCtrl);
+
+  (function (canvasCtrl) {
+    var addPageBtn = $(&#x27;#add-page&#x27;);
+    var canvasPages = $(&#x27;#canvas-pages&#x27;);
+    var rmItemBtn = $(&#x27;#remove-item&#x27;);
+    var hotTools = $(&#x27;.hot-tools&#x27;);
+    var pageSizeMd = $(&#x27;#tb--page-size&#x27;);
+    var currentCmd;
+    var imgLib = $(&#x27;#image-lib&#x27;);
+    var imgLibLoaded = false;
+    var addColorBtn = $(&#x27;#add-color-fp&#x27;);
+    var currentFontSize;
+    var doExpOpts = $(&#x27;#do-export-options&#x27;);
+    var fb;
+    var fbContainer = $(&#x27;#form-builder-container&#x27;);
+    var compStore = $(&#x27;#popular-components&#x27;);
+    var snackbarContainer = document.querySelector(&#x27;#demo-snackbar-example&#x27;);
+
+    /**
+     * When right-bottom add-page button is clicked
+     */
+    function onAddPageBtnClick() {
+      var pageEl = common.utils.getElemFromTpl(&#x27;#tpl--page&#x27;);
+      var lastPage = $(&#x27;.page&#x27;).last();
+      if (lastPage.length) {
+        pageEl.css(&#x27;top&#x27;, lastPage.position().top + lastPage.height() + 75);
+      }
+      pageEl.attr(&#x27;id&#x27;, &#x27;page-&#x27; + new Date().getTime());
+      canvasPages.children(&#x27;#pages&#x27;).append(pageEl);
+      canvasCtrl.publish(&#x27;addPage&#x27;, pageEl);
+      canvasCtrl.publish(&#x27;changePageSize&#x27;);
+    }
+
+    onAddPageBtnClick();
+
+    function onRmItemBtnClick() {
+      canvasCtrl.publish(&#x27;removeItem&#x27;);
+    }
+
+    function showHotTools(options) {
+      options = options || {};
+      if (options.action) {
+        hotTools.filter(&#x27;.&#x27; + options.type).addClass(&#x27;show&#x27;);
+      } else {
+        hotTools.removeClass(&#x27;show&#x27;);
+      }
+    }
+
+    function doPopupCommand(command, promptText, promptDefault) {
+      var usrInput = prompt(promptText, promptDefault);
+      if (usrInput) {
+        document.execCommand(command, false, usrInput);
+      }
+    }
+
+    function onHotToolsClick() {
+      var self = $(this);
+      var extraParam = null;
+      currentCmd = self.data(&#x27;command&#x27;);
+      if (!currentCmd) {
+        return;
+      }
+      if (currentCmd === &#x27;createLink&#x27;) {
+        doPopupCommand(currentCmd, &#x27;输入链接&#x27;);
+        return;
+      }
+      if (currentCmd === &#x27;insertImage&#x27;) {
+        doPopupCommand(currentCmd, &#x27;输入图片URL&#x27;);
+        return;
+      }
+      if (currentCmd === &#x27;formatBlock&#x27; || currentCmd === &#x27;fontName&#x27;) {
+        extraParam = self.text();
+      }
+      if (self.data(&#x27;detail&#x27;)) {
+        extraParam = self.data(&#x27;detail&#x27;);
+      }
+      document.execCommand(currentCmd, false, extraParam);
+      if (currentCmd === &#x27;fontSize&#x27;) {
+        currentFontSize = self.text();
+        var ff = $(&#x27;font[size]&#x27;);
+        var canvasActiveEl = canvasCtrl.getActiveEl();
+        if (ff.length) {
+          ff.css(&#x27;font-size&#x27;, currentFontSize + &#x27;px&#x27;).removeAttr(&#x27;size&#x27;).css(&#x27;line-height&#x27;, &#x27;1em&#x27;);
+        } else {
+          if (canvasActiveEl) {
+            var innerEl = canvasActiveEl.find(&#x27;.inner&#x27;).get(0);
+            innerEl.addEventListener(&#x27;keyup&#x27;, changeEdFontSz);
+          }
+        }
+      }
+    }
+
+    function changeEdFontSz() {
+      $(&#x27;font[size]&#x27;).css(&#x27;font-size&#x27;, currentFontSize + &#x27;px&#x27;).removeAttr(&#x27;size&#x27;);
+      this.removeEventListener(&#x27;keyup&#x27;, changeEdFontSz);
+    }
+
+    function installPickers() {
+      bindColorPicker(&#x27;#fgcolor-button&#x27;, &#x27;#000000&#x27;, function (color) {
+        document.execCommand(&#x27;foreColor&#x27;, false, color.toHexString());
+      });
+      bindColorPicker(&#x27;#bgcolor-button&#x27;, &#x27;#ffffff&#x27;, function (color) {
+        document.execCommand(&#x27;backColor&#x27;, false, color.toHexString());
+      });
+      bindColorPicker(&#x27;#add-color-fp&#x27;, &#x27;#780fa8&#x27;, function (color) {
+        appendColorPlatte(color.toHexString());
+      });
+    }
+
+    function bindColorPicker(selector, setupColor, cb) {
+      $(selector).spectrum({
+        color: setupColor,
+        showInput: true,
+        className: &quot;full-spectrum&quot;,
+        showInitial: true,
+        showPalette: true,
+        showSelectionPalette: true,
+        maxSelectionSize: 10,
+        preferredFormat: &quot;hex&quot;,
+        localStorageKey: &quot;spectrum.demo&quot;,
+        move: function (color) {
+
+        },
+        show: function () {
+
+        },
+        beforeShow: function () {
+
+        },
+        hide: function () {
+
+        },
+        change: cb,
+        palette: [
+          [&quot;rgb(0, 0, 0)&quot;, &quot;rgb(67, 67, 67)&quot;, &quot;rgb(102, 102, 102)&quot;,
+            &quot;rgb(204, 204, 204)&quot;, &quot;rgb(217, 217, 217)&quot;, &quot;rgb(255, 255, 255)&quot;],
+          [&quot;rgb(152, 0, 0)&quot;, &quot;rgb(255, 0, 0)&quot;, &quot;rgb(255, 153, 0)&quot;, &quot;rgb(255, 255, 0)&quot;, &quot;rgb(0, 255, 0)&quot;,
+            &quot;rgb(0, 255, 255)&quot;, &quot;rgb(74, 134, 232)&quot;, &quot;rgb(0, 0, 255)&quot;, &quot;rgb(153, 0, 255)&quot;, &quot;rgb(255, 0, 255)&quot;],
+          [&quot;rgb(230, 184, 175)&quot;, &quot;rgb(244, 204, 204)&quot;, &quot;rgb(252, 229, 205)&quot;, &quot;rgb(255, 242, 204)&quot;, &quot;rgb(217, 234, 211)&quot;,
+            &quot;rgb(208, 224, 227)&quot;, &quot;rgb(201, 218, 248)&quot;, &quot;rgb(207, 226, 243)&quot;, &quot;rgb(217, 210, 233)&quot;, &quot;rgb(234, 209, 220)&quot;,
+            &quot;rgb(221, 126, 107)&quot;, &quot;rgb(234, 153, 153)&quot;, &quot;rgb(249, 203, 156)&quot;, &quot;rgb(255, 229, 153)&quot;, &quot;rgb(182, 215, 168)&quot;,
+            &quot;rgb(162, 196, 201)&quot;, &quot;rgb(164, 194, 244)&quot;, &quot;rgb(159, 197, 232)&quot;, &quot;rgb(180, 167, 214)&quot;, &quot;rgb(213, 166, 189)&quot;,
+            &quot;rgb(204, 65, 37)&quot;, &quot;rgb(224, 102, 102)&quot;, &quot;rgb(246, 178, 107)&quot;, &quot;rgb(255, 217, 102)&quot;, &quot;rgb(147, 196, 125)&quot;,
+            &quot;rgb(118, 165, 175)&quot;, &quot;rgb(109, 158, 235)&quot;, &quot;rgb(111, 168, 220)&quot;, &quot;rgb(142, 124, 195)&quot;, &quot;rgb(194, 123, 160)&quot;,
+            &quot;rgb(166, 28, 0)&quot;, &quot;rgb(204, 0, 0)&quot;, &quot;rgb(230, 145, 56)&quot;, &quot;rgb(241, 194, 50)&quot;, &quot;rgb(106, 168, 79)&quot;,
+            &quot;rgb(69, 129, 142)&quot;, &quot;rgb(60, 120, 216)&quot;, &quot;rgb(61, 133, 198)&quot;, &quot;rgb(103, 78, 167)&quot;, &quot;rgb(166, 77, 121)&quot;,
+            &quot;rgb(91, 15, 0)&quot;, &quot;rgb(102, 0, 0)&quot;, &quot;rgb(120, 63, 4)&quot;, &quot;rgb(127, 96, 0)&quot;, &quot;rgb(39, 78, 19)&quot;,
+            &quot;rgb(12, 52, 61)&quot;, &quot;rgb(28, 69, 135)&quot;, &quot;rgb(7, 55, 99)&quot;, &quot;rgb(32, 18, 77)&quot;, &quot;rgb(76, 17, 48)&quot;]
+        ]
+      });
+    }
+
+    function changePageSize() {
+      var w = pageSizeMd.find(&#x27;.page-width&#x27;).val();
+      var h = pageSizeMd.find(&#x27;.page-height&#x27;).val();
+      canvasCtrl.publish(&#x27;changePageSize&#x27;, w, h);
+    }
+
+    function onPageSizeMdKeyup(event) {
+      if (event.keyCode === 13) {
+        changePageSize();
+      }
+    }
+
+    function updatePageSizeMd(width, height) {
+      pageSizeMd.find(&#x27;.page-width&#x27;).val(width).end().find(&#x27;.page-height&#x27;).val(height).end().find(&#x27;.mdl-textfield&#x27;).addClass(&#x27;is-dirty&#x27;);
+    }
+
+    function loadImgLib() {
+      if (imgLibLoaded) {
+        return;
+      }
+      imgLibLoaded = true;
+      loadSpecialImages();
+      loadColorPlatte();
+    }
+
+    function loadColorPlatte() {
+      var colors = [&#x27;#2d0921&#x27;, &#x27;#c5c159&#x27;, &#x27;#ffc0cb&#x27;, &#x27;#012d5a&#x27;, &#x27;#ad0725&#x27;, &#x27;#913053&#x27;, &#x27;#59112c&#x27;,
+        &#x27;#37a2b2&#x27;, &#x27;#99ffdd&#x27;, &#x27;#aaf1be&#x27;, &#x27;#000000&#x27;, &#x27;#f97508&#x27;, &#x27;#66217e&#x27;, &#x27;#ffe5fc&#x27;, &#x27;#e5d0d7&#x27;, &#x27;#beffab&#x27;, &#x27;#abbeff&#x27;, &#x27;#c2abff&#x27;];
+      var len = colors.length;
+      for (var i = 0; i &lt; len; i++) {
+        appendColorPlatte(colors[i]);
+      }
+    }
+
+    function appendColorPlatte(color) {
+      var tpl = $(&#x27;#tpl--color-platte&#x27;).html();
+      $(tpl.replaceAll(&#x27;{{color-code}}&#x27;, color)).insertBefore(addColorBtn);
+    }
+
+    function appendSpecialImage(imgSrc) {
+      var tpl = $(&#x27;#tpl--lib-img-item&#x27;).html();
+      imgLib.find(&#x27;#special-bg-images .inner&#x27;).append(tpl.replaceAll(&#x27;{{img-src}}&#x27;, imgSrc));
+    }
+
+    function loadSpecialImages() {
+      var images = [
+        &#x27;http://www.amazingwallpaperz.com/wp-content/uploads/Abstract-Painting-Wallpaper-Mobile-Phones.jpg&#x27;,
+        &#x27;https://static.pexels.com/photos/5836/yellow-metal-design-decoration.jpg&#x27;,
+        &#x27;http://www.cianellistudios.com/images/abstract-paintings/abstract-paintings-splash.jpg&#x27;,
+        &#x27;http://img3.xiazaizhijia.com/walls/20161209/1920x1080_e33062551f5890f.jpg&#x27;,
+        &#x27;http://4493bz.1985t.com/uploads/allimg/141014/3-141014100632.jpg&#x27;,
+        &#x27;http://4493bz.1985t.com/uploads/allimg/150722/1-150H2142Q0.jpg&#x27;,
+        &#x27;http://pic1.win4000.com/wallpaper/1/50445a0a38168.jpg&#x27;,
+        &#x27;https://inspirationseek.com/wp-content/uploads/2014/06/Art-Abstract-Painting.jpg&#x27;,
+        &#x27;http://www.wmpic.me/wp-content/uploads/2013/12/20131225172517256.jpg&#x27;,
+        &#x27;http://www.amazingwallpaperz.com/wp-content/uploads/Abstract-Painting-Background-HD-Wallpapers.jpg&#x27;,
+        &#x27;images/comp_zard_purple.jpg&#x27;,
+        &#x27;images/comp_zard_smile.png&#x27;,
+        &#x27;images/comp_zard_smile_wide.jpg&#x27;,
+        &#x27;https://images.fineartamerica.com/images-medium-large-5/grid-3-jane-davies.jpg&#x27;,
+        &#x27;http://www.artworkcanvas.com/images/388_02.jpg&#x27;,
+
+      ];
+      var imgNum = images.length;
+      for (var i = 0; i &lt; imgNum; i++) {
+        var img = new Image();
+        img.src = images[i];
+        img.onload = function () {
+          appendSpecialImage(this.src);
+        };
+        img.onerror = function () {
+          console.log(&#x27;img load error for &#x27;, this.src);
+        }
+      }
+    }
+
+    function onImgLibClick(event) {
+      var target = $(event.target);
+      if (target.is(&#x27;.option&#x27;)) {
+        var imgSrc = target.closest(&#x27;.img-item&#x27;).data(&#x27;imgSrc&#x27;);
+        if (target.is(&#x27;.is-bg&#x27;)) {
+          canvasCtrl.publish(&#x27;changeBg&#x27;, imgSrc);
+        } else if (target.is(&#x27;.is-item&#x27;)) {
+          canvasCtrl.publish(&#x27;addNewItem&#x27;, common.commands.ADD_IMG, imgSrc);
+        }
+      } else if (target.is(&#x27;.color-brick&#x27;)) {
+        canvasCtrl.publish(&#x27;changeBgColor&#x27;, target.data(&#x27;colorCode&#x27;));
+      } else if (target.is(&#x27;#add-color-fp&#x27;)) {
+
+      }
+    }
+
+    function initializeFormBuilder() {
+      if (!fb) {
+        var options = {
+          i18n: {
+            locale: &#x27;zh-CN&#x27;
+          },
+          disabledActionButtons: [&#x27;save&#x27;, &#x27;clear&#x27;, &#x27;data&#x27;]
+        };
+        fb = $(&#x27;#form-builder-mounter&#x27;).formBuilder(options);
+      }
+    }
+
+    function dlHTML() {
+      common.utils.getPageHTML(&#x27;.elements&#x27;, &#x27;index.template.html&#x27;, function (hml) {
+        common.utils.download(&#x27;page.html&#x27;, &#x27;text/html&#x27;, hml);
+      });
+    }
+
+    function printHTML() {
+      var win = window.open(&#x27;&#x27;, &#x27;Preview&#x27;, &#x27;height=800,width=1280,toolbar=no,scrollbars=yes&#x27;);
+      common.utils.getPageHTML(&#x27;.elements&#x27;, &#x27;index.template.html&#x27;, function (hml) {
+        common.utils.print(hml, win);
+      });
+    }
+
+    function onFBContainerClick(event) {
+      var target = $(event.target);
+      if (fb &amp;&amp; fb.actions &amp;&amp; fb.actions.getData) {
+        if (target.closest(&#x27;.clear&#x27;).length) {
+          fb.actions.clearFields();
+        } else if (target.closest(&#x27;.submit&#x27;).length) {
+          var rndHTML = getRenderedHTML(fb.actions.getData(&#x27;xml&#x27;)) || &#x27;&#x27;;
+          if (!rndHTML) {
+            showWarning(&#x27;开始制作表单吧&#x27;);
+          } else {
+            canvasCtrl.publish(&#x27;addNewItem&#x27;, common.commands.ADD_FORM, rndHTML);
+            fb.actions.clearFields();
+            fbContainer.modal(&#x27;hide&#x27;);
+          }
+        }
+      }
+    }
+
+    function showWarning(warning) {
+      var data = {
+        message: warning,
+        timeout: 2000,
+        actionHandler: null
+      };
+      snackbarContainer.MaterialSnackbar.showSnackbar(data);
+    }
+
+    function getRenderedHTML(formData) {
+      var formRenderOpts = {
+        dataType: &#x27;xml&#x27;,
+        formData: formData
+      };
+      var formField = $(&#x27;&lt;form /&gt;&#x27;);
+      formField.formRender(formRenderOpts);
+      return formField.html();
+    }
+
+    function onExpOptsClick(event) {
+      var target = $(event.target);
+      canvasCtrl.publish(&#x27;blurActiveEl&#x27;);
+      if (target.is(&#x27;.dl&#x27;)) {
+        dlHTML();
+      } else if (target.is(&#x27;.print&#x27;)) {
+        printHTML();
+      }
+    }
+
+    function initializeCtxMenu() {
+      $.contextMenu({
+        selector: &#x27;#canvas-pages .page&#x27;,
+        items: {
+          clone: {
+            name: &quot;复制页面&quot;, callback: function () {
+              canvasCtrl.publish(&#x27;blurActiveEl&#x27;);
+              this.clone(true).removeClass(&#x27;selected context-menu-active&#x27;).insertAfter(this);
+              canvasCtrl.publish(&#x27;rearrangePages&#x27;);
+            }
+          },
+          applyBgToAll: {
+            name: &quot;应用页面背景到全部&quot;, callback: function () {
+              this.siblings(&#x27;.page&#x27;).find(&#x27;.elements&#x27;).css(&#x27;background&#x27;, this.find(&#x27;.elements&#x27;).css(&#x27;background&#x27;));
+            }
+          },
+          removePage: {
+            name: &#x27;删除本页&#x27;, callback: function () {
+              canvasCtrl.publish(&#x27;removeItem&#x27;, this);
+            }
+          }
+        },
+        animation: {duration: 100, show: &#x27;fadeIn&#x27;, hide: &#x27;fadeOut&#x27;}
+      });
+      $.contextMenu({
+        selector: &#x27;#overlays .element&#x27;,
+        items: {
+          OK: {
+            name: &quot;确定&quot;, callback: function () {
+              canvasCtrl.publish(&#x27;blurActiveEl&#x27;);
+            }
+          },
+          remove: {
+            name: &quot;移除&quot;, callback: function () {
+              canvasCtrl.publish(&#x27;removeItem&#x27;);
+            }
+          }
+        },
+        animation: {duration: 100, show: &#x27;fadeIn&#x27;, hide: &#x27;fadeOut&#x27;}
+      });
+      $.contextMenu({
+        // define which elements trigger this menu
+        selector: &quot;.elements .element&quot;,
+        // define the elements of the menu
+        items: {
+          sendUpward: {
+            name: &quot;往上一层&quot;, callback: function () {
+              if (this.next(&#x27;.element&#x27;).length) {
+                this.insertAfter(this.next(&#x27;.element&#x27;));
+              }
+            }
+          },
+          sendDownward: {
+            name: &quot;往下一层&quot;, callback: function () {
+              if (this.prev(&#x27;.element&#x27;)) {
+                this.insertBefore(this.prev(&#x27;.element&#x27;));
+              }
+            }
+          },
+          sendTop: {
+            name: &quot;移向顶层&quot;, callback: function () {
+              this.closest(&#x27;.elements&#x27;).append(this);
+            }
+          },
+          sendBottom: {
+            name: &quot;移向底部&quot;, callback: function () {
+              this.closest(&#x27;.elements&#x27;).prepend(this);
+            }
+          },
+          clone: {
+            name: &quot;复制&quot;, callback: function () {
+              this.clone().removeClass(&#x27;context-menu-active&#x27;).insertAfter(this);
+            }
+          },
+          removeItem: {
+            name: &quot;移除&quot;, callback: function () {
+              canvasCtrl.publish(&#x27;removeItem&#x27;, this);
+            }
+          }
+        },
+        animation: {duration: 100, show: &#x27;fadeIn&#x27;, hide: &#x27;fadeOut&#x27;}
+      });
+    }
+
+    function bugFixes() {
+      document.addEventListener(&#x27;mouseup&#x27;, function () {
+        document.documentElement.style.cursor = &#x27;auto&#x27;
+      }, false);
+      window.addEventListener(&#x27;resize&#x27;, function () {
+        canvasCtrl.publish(&#x27;changePageSize&#x27;);
+      });
+    }
+
+    function onUpImgFieldChange() {
+      var files = this.files;
+      var i;
+      var fileNum = files.length;
+      for (i = 0; i &lt; fileNum; i++) {
+        appendSpecialImage(window.URL.createObjectURL(files[i]));
+      }
+    }
+
+    function onCompStoreClick(event) {
+      var target = $(event.target);
+      var component = target.closest(&#x27;.component&#x27;);
+      if (component.length) {
+        var compType = component.data(&#x27;component&#x27;);
+        var htm = $(&#x27;#tpl--&#x27; + compType).html();
+        if (htm) {
+          canvasCtrl.publish(&#x27;addNewItem&#x27;, common.commands.ADD_COMP, {html: htm, type: compType});
+        }
+      }
+    }
+
+    function installClickFocusBtns() {
+      $(&#x27;.click-focus&#x27;).on(&#x27;click&#x27;, function () {
+        var $self = $(this);
+        $self.closest(&#x27;.component-container&#x27;).addClass(&#x27;focus&#x27;);
+      });
+      $(&#x27;.click-un-focus&#x27;).on(&#x27;click&#x27;, function () {
+        var $self = $(this);
+        $self.closest(&#x27;.component-container&#x27;).removeClass(&#x27;focus&#x27;);
+      });
+    }
+
+    function installMediaComp() {
+      var audioSrc;
+      var autoplayAudio;
+      var loopAudio;
+      var embedVideoCode;
+      $(&#x27;#create-audio&#x27;).on(&#x27;click&#x27;, function () {
+        audioSrc = $(&#x27;#music-src&#x27;).val();
+        if (!audioSrc) {
+          showWarning(&#x27;告诉我们音乐链接吧&#x27;);
+          return;
+        }
+        autoplayAudio = $(&#x27;label[for=&quot;autoplay-cb&quot;]&#x27;).hasClass(&#x27;is-checked&#x27;);
+        loopAudio = $(&#x27;label[for=&quot;loop-cb&quot;]&#x27;).hasClass(&#x27;is-checked&#x27;);
+        canvasCtrl.publish(&#x27;addNewItem&#x27;, common.commands.ADD_AUDIO, {
+          src: audioSrc,
+          loop: loopAudio,
+          autoplay: autoplayAudio
+        });
+      });
+      $(&#x27;#create-video-embed&#x27;).on(&#x27;click&#x27;, function () {
+        embedVideoCode = $(&#x27;#embed-video-code&#x27;).val();
+        if (!embedVideoCode) {
+          showWarning(&#x27;告诉我们嵌入视频代码吧&#x27;);
+          return;
+        }
+        canvasCtrl.publish(&#x27;addNewItem&#x27;, common.commands.ADD_VIDEO, {embedCode: embedVideoCode});
+      });
+    }
+
+    function installAnimationTool() {
+      var animation;
+      $(&#x27;#activate-animation&#x27;).on(&#x27;click&#x27;, function () {
+        animation = $(&#x27;#select-animation&#x27;).val();
+        canvasCtrl.publish(&#x27;applyAnimation&#x27;, animation);
+      });
+    }
+
+    uiCtrl.subscribe(&#x27;showWarning&#x27;, showWarning);
+    uiCtrl.subscribe(&#x27;showHotTools&#x27;, showHotTools);
+    uiCtrl.subscribe(&#x27;updatePageSizeMd&#x27;, updatePageSizeMd);
+    uiCtrl.subscribe(&#x27;load-image-lib&#x27;, loadImgLib);
+    addPageBtn.click(onAddPageBtnClick);
+    rmItemBtn.click(onRmItemBtnClick);
+    hotTools.find(&#x27;button, .mdl-menu__item&#x27;).click(onHotToolsClick);
+    pageSizeMd.on(&#x27;keyup&#x27;, onPageSizeMdKeyup);
+    imgLib.on(&#x27;click&#x27;, onImgLibClick);
+    compStore.on(&#x27;click&#x27;, onCompStoreClick);
+    installPickers();
+    installClickFocusBtns();
+    installMediaComp();
+    installAnimationTool();
+    doExpOpts.click(onExpOptsClick);
+    fbContainer.on(&#x27;shown.bs.modal&#x27;, initializeFormBuilder).on(&#x27;click&#x27;, onFBContainerClick);
+    initializeCtxMenu();
+    bugFixes();
+    $(&#x27;#upload-img-field&#x27;).on(&#x27;change&#x27;, onUpImgFieldChange);
+    loadImgLib();
+  })(canvasCtrl);
+})();
+
+    </pre>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="../assets/js/yui-prettify.js"></script>
+<script src="../assets/../api.js"></script>
+<script src="../assets/js/api-filter.js"></script>
+<script src="../assets/js/api-list.js"></script>
+<script src="../assets/js/api-search.js"></script>
+<script src="../assets/js/apidocs.js"></script>
+</body>
+</html>

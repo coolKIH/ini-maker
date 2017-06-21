@@ -21,10 +21,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
   <link rel="stylesheet" href="https://fonts.lug.ustc.edu.cn/icon?family=Material+Icons">
   <link href="https://fonts.lug.ustc.edu.cn/css?family=Bubbler+One|Cinzel|Gloria+Hallelujah|Roboto" rel="stylesheet">
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.brown-purple.min.css"/>
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.grey-teal.min.css" />
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
         integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.perfect-scrollbar/0.7.0/css/perfect-scrollbar.min.css" integrity="sha256-ANTwsT2Ffs0EVPyOuss4fxYnCxewzdZeahx93/uLWDM=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.5.0/jquery.contextMenu.min.css" integrity="sha256-Rq5lSTYX3OsnoQntXrKU/CyraVK0MJnXJXfozcmdoyw=" crossorigin="anonymous" />
   <link rel="stylesheet" href="styles/main.css">
   <!-- Color the status bar on mobile devices -->
   <meta name="theme-color" content="#efefef">
@@ -36,21 +37,22 @@
 </head>
 <body>
 <!-- Add your site or app content here -->
-<header id="main-header" class="d-flex align-items-center justify-content-between flex-wrap">
+<header id="main-header" class="d-flex align-items-center justify-content-between flex-wrap pure-box">
   <nav id="main-navbar" class="d-flex align-items-center">
     <div class="brand-logo cursor-pointer">
-      <div class="circles">
-        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="100" cy="100" r="100" fill="#cdbf96"></circle>
-          <circle cx="100" cy="100" r="68" fill="#d7cbab"></circle>
-          <circle cx="100" cy="100" r="30" fill="#eee9db"></circle>
-        </svg>
-      </div>
-      <a href="#">i</a>
+      <!--<div class="circles">-->
+        <!--<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">-->
+          <!--<circle cx="100" cy="100" r="100" fill="rgb(255,235,59)"></circle>-->
+          <!--<circle cx="100" cy="100" r="68" fill="rgb(255,193,7)"></circle>-->
+          <!--<circle cx="100" cy="100" r="30" fill="rgb(255,235,59)"></circle>-->
+        <!--</svg>-->
+      <!--</div>-->
+      <!--<a href="#">i</a>-->
+      <a href="#">ini Canvas</a>
     </div>
   </nav>
   <section class="d-flex align-items-center flex-wrap justify-content-center">
-    <section id="tb--page-size" class="p-2">
+    <section id="tb--page-size">
       <div class="mdl-textfield mdl-js-textfield is-dirty">
         <input class="mdl-textfield__input page-width" type="text" id="page-width-adj" value="1280">
         <label class="mdl-textfield__label mb-0" for="page-width-adj">Width</label>
@@ -83,8 +85,6 @@
          data-target="#form-builder-container"><i class="material-icons">domain</i></div>
     <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="添加常见部件"
          data-toggle-id="popular-components"><i class="material-icons">view_comfy</i></div>
-    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="添加动画特效"
-         data-toggle-id="animations-effects"><i class="material-icons">transform</i></div>
     <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" id="add-page" title="增加新页"><i
       class="material-icons">note_add</i></div>
     <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" id="remove-item" title="移除元素"><i
@@ -92,6 +92,7 @@
   </section>
   <section id="canvas-pages">
     <div id="overlays"></div>
+    <div id="pages"></div>
   </section>
   <section class="hot-tools text p-2 pure-box">
     <button type="button"
@@ -170,16 +171,15 @@
       class="material-icons">select_all</i></button>
     <button data-command="removeFormat" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
       class="material-icons">format_clear</i></button>
-  </section>
-  <section class="hot-tools card-square card-wide card-tag card-note pure-box">
-    <button type="button"
-            class="close mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect"
-            aria-label="Close" onclick="$(this).closest('.hot-tools').removeClass('show');">
-      <i aria-hidden="true" class="material-icons">close</i>
+    <button data-command="redo" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+      <i class="material-icons">redo</i>
     </button>
-    </section>
+    <button data-command="undo" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+      <i class="material-icons">undo</i>
+    </button>
+  </section>
   <aside id="image-lib" class="slidebar col-sm-12 col-md-3 px-0">
-    <header class="header text-center text-white d-flex justify-content-center align-items-center"><h1>图片库</h1>
+    <header class="header text-center text-white d-flex justify-content-center align-items-center"><h1>图片仓库</h1>
       <button type="button" class="close-btn mdl-button mdl-js-button mdl-button--icon" aria-label="Close">
         <i class="material-icons">close</i>
       </button>
@@ -195,6 +195,7 @@
           <div style="background: #780fa8" title="添加色块" id="add-color-fp"
                class="d-flex justify-content-center align-items-center"><i class="material-icons text-white">add</i>
           </div>
+          <div class="color-brick" style="background: url('images/t_t.png') repeat" title="透明" data-color-code="rgba(0,0,0,0)"></div>
         </section>
       </section>
       <div class="p-2">
@@ -223,10 +224,176 @@
       <div class="p-2">
         <div class="d-flex flex-wrap align-items-start">
           <div class="component-container">
-            <div class="component music" data-component="music"><i class="material-icons">library_music</i></div>
+            <div class="component music click-focus" title="添加音乐"><i class="material-icons">library_music</i></div>
+            <div class="detail-settings">
+              <!-- 添加音乐 -->
+              <input type="text" class="w-100 text" name="music-src" id="music-src" spellcheck="false" autocomplete="off" placeholder="音乐链接: https://haoyellow.cn/static/songs/ZARD%20-%20%E4%BA%8C%E4%BA%BA%E3%81%AE%E5%A4%8F.mp3">
+              <section class="mt-2">
+                <label class="text-accent my-0 mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="autoplay-cb">
+                  <input type="checkbox" id="autoplay-cb" class="mdl-checkbox__input">
+                  <span class="mdl-checkbox__label">自动播放</span>
+                </label>
+                <label class="text-accent my-0 mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="loop-cb">
+                  <input type="checkbox" id="loop-cb" class="mdl-checkbox__input">
+                  <span class="mdl-checkbox__label">单曲循环</span>
+                </label>
+              </section>
+              <button type="button" class="mdl-button mdl-js-button mt-2 create" id="create-audio">创建</button>
+              <button type="button"
+                      class="click-un-focus mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect"
+                      aria-label="Close">
+                <i aria-hidden="true" class="material-icons">close</i>
+              </button>
+            </div>
           </div>
           <div class="component-container">
-            <div class="component video" data-component="video"><i class="material-icons">video_library</i></div>
+            <div class="component video click-focus" title="添加视频"><i class="material-icons">video_library</i></div>
+            <div class="detail-settings">
+              <!-- 添加视频 -->
+              <div class="w-100 children-vertical-center">
+                <input type="text" class="w-100 text" name="embed-video-code" id="embed-video-code" autocomplete="off" spellcheck="false" placeholder='<iframe width="560" height="315" src="https://www.youtube.com/embed/WqhZhgb2fS0" frameborder="0" allowfullscreen></iframe>'>
+                <button type="button" class="create w-100 mdl-button mdl-js-button mt-2" id="create-video-embed">创建</button>
+              </div>
+              <button type="button"
+                      class="click-un-focus mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect"
+                      aria-label="Close">
+                <i aria-hidden="true" class="material-icons">close</i>
+              </button>
+            </div>
+          </div>
+          <div class="component-container">
+            <div class="component animation click-focus" title="应用动画"><i class="material-icons">transform</i></div>
+            <div class="detail-settings">
+              <!-- 选择动画 -->
+              <form>
+                <select id="select-animation" class="form-control">
+                  <option value="none">None</option>
+                  <optgroup label="Attention Seekers">
+                    <option value="bounce">bounce</option>
+                    <option value="flash">flash</option>
+                    <option value="pulse">pulse</option>
+                    <option value="rubberBand">rubberBand</option>
+                    <option value="shake">shake</option>
+                    <option value="swing">swing</option>
+                    <option value="tada">tada</option>
+                    <option value="wobble">wobble</option>
+                    <option value="jello">jello</option>
+                  </optgroup>
+
+                  <optgroup label="Bouncing Entrances">
+                    <option value="bounceIn">bounceIn</option>
+                    <option value="bounceInDown">bounceInDown</option>
+                    <option value="bounceInLeft">bounceInLeft</option>
+                    <option value="bounceInRight">bounceInRight</option>
+                    <option value="bounceInUp">bounceInUp</option>
+                  </optgroup>
+
+                  <optgroup label="Bouncing Exits">
+                    <option value="bounceOut">bounceOut</option>
+                    <option value="bounceOutDown">bounceOutDown</option>
+                    <option value="bounceOutLeft">bounceOutLeft</option>
+                    <option value="bounceOutRight">bounceOutRight</option>
+                    <option value="bounceOutUp">bounceOutUp</option>
+                  </optgroup>
+
+                  <optgroup label="Fading Entrances">
+                    <option value="fadeIn">fadeIn</option>
+                    <option value="fadeInDown">fadeInDown</option>
+                    <option value="fadeInDownBig">fadeInDownBig</option>
+                    <option value="fadeInLeft">fadeInLeft</option>
+                    <option value="fadeInLeftBig">fadeInLeftBig</option>
+                    <option value="fadeInRight">fadeInRight</option>
+                    <option value="fadeInRightBig">fadeInRightBig</option>
+                    <option value="fadeInUp">fadeInUp</option>
+                    <option value="fadeInUpBig">fadeInUpBig</option>
+                  </optgroup>
+
+                  <optgroup label="Fading Exits">
+                    <option value="fadeOut">fadeOut</option>
+                    <option value="fadeOutDown">fadeOutDown</option>
+                    <option value="fadeOutDownBig">fadeOutDownBig</option>
+                    <option value="fadeOutLeft">fadeOutLeft</option>
+                    <option value="fadeOutLeftBig">fadeOutLeftBig</option>
+                    <option value="fadeOutRight">fadeOutRight</option>
+                    <option value="fadeOutRightBig">fadeOutRightBig</option>
+                    <option value="fadeOutUp">fadeOutUp</option>
+                    <option value="fadeOutUpBig">fadeOutUpBig</option>
+                  </optgroup>
+
+                  <optgroup label="Flippers">
+                    <option value="flip">flip</option>
+                    <option value="flipInX">flipInX</option>
+                    <option value="flipInY">flipInY</option>
+                    <option value="flipOutX">flipOutX</option>
+                    <option value="flipOutY">flipOutY</option>
+                  </optgroup>
+
+                  <optgroup label="Lightspeed">
+                    <option value="lightSpeedIn">lightSpeedIn</option>
+                    <option value="lightSpeedOut">lightSpeedOut</option>
+                  </optgroup>
+
+                  <optgroup label="Rotating Entrances">
+                    <option value="rotateIn">rotateIn</option>
+                    <option value="rotateInDownLeft">rotateInDownLeft</option>
+                    <option value="rotateInDownRight">rotateInDownRight</option>
+                    <option value="rotateInUpLeft">rotateInUpLeft</option>
+                    <option value="rotateInUpRight">rotateInUpRight</option>
+                  </optgroup>
+
+                  <optgroup label="Rotating Exits">
+                    <option value="rotateOut">rotateOut</option>
+                    <option value="rotateOutDownLeft">rotateOutDownLeft</option>
+                    <option value="rotateOutDownRight">rotateOutDownRight</option>
+                    <option value="rotateOutUpLeft">rotateOutUpLeft</option>
+                    <option value="rotateOutUpRight">rotateOutUpRight</option>
+                  </optgroup>
+
+                  <optgroup label="Sliding Entrances">
+                    <option value="slideInUp">slideInUp</option>
+                    <option value="slideInDown">slideInDown</option>
+                    <option value="slideInLeft">slideInLeft</option>
+                    <option value="slideInRight">slideInRight</option>
+
+                  </optgroup>
+                  <optgroup label="Sliding Exits">
+                    <option value="slideOutUp">slideOutUp</option>
+                    <option value="slideOutDown">slideOutDown</option>
+                    <option value="slideOutLeft">slideOutLeft</option>
+                    <option value="slideOutRight">slideOutRight</option>
+
+                  </optgroup>
+
+                  <optgroup label="Zoom Entrances">
+                    <option value="zoomIn">zoomIn</option>
+                    <option value="zoomInDown">zoomInDown</option>
+                    <option value="zoomInLeft">zoomInLeft</option>
+                    <option value="zoomInRight">zoomInRight</option>
+                    <option value="zoomInUp">zoomInUp</option>
+                  </optgroup>
+
+                  <optgroup label="Zoom Exits">
+                    <option value="zoomOut">zoomOut</option>
+                    <option value="zoomOutDown">zoomOutDown</option>
+                    <option value="zoomOutLeft">zoomOutLeft</option>
+                    <option value="zoomOutRight">zoomOutRight</option>
+                    <option value="zoomOutUp">zoomOutUp</option>
+                  </optgroup>
+
+                  <optgroup label="Specials">
+                    <option value="hinge">hinge</option>
+                    <option value="rollIn">rollIn</option>
+                    <option value="rollOut">rollOut</option>
+                  </optgroup>
+                </select>
+                <button type="button" class="mdl-button mdl-js-button mt-2 animation w-100 text-accent" id="activate-animation">应用</button>
+              </form>
+              <button type="button"
+                      class="click-un-focus mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect"
+                      aria-label="Close">
+                <i aria-hidden="true" class="material-icons">close</i>
+              </button>
+            </div>
           </div>
           <div class="component-container">
             <div class="component card" data-component="card-square"><h4>方卡片</h4></div>
@@ -282,6 +449,10 @@
       <line x1="0" x2="0" y1="0" y2="100%" stroke-width="2" stroke-dasharray="6, 6"></line>
     </svg>
   </section>
+  <div id="demo-snackbar-example" class="mdl-js-snackbar mdl-snackbar">
+    <div class="mdl-snackbar__text"></div>
+    <button class="mdl-snackbar__action" type="button"></button>
+  </div>
 </section>
 <!-- templates -->
 <script type="text/html-template" id="tpl--selection-box">
@@ -300,7 +471,7 @@
   </div>
 </script>
 <script type="text/html-template" id="tpl--page">
-  <section class="page pure-box" data-toggle="context" data-target="#context-menu">
+  <section class="page" data-toggle="context" data-target="#context-menu">
     <section class="elements"></section>
     <svg class="resize-handle" width="25" height="25">
       <polygon points="0,25 25,0 25,25"></polygon>
@@ -420,6 +591,8 @@
       width: 256px;
       height: 256px;
       background: #3E4EB8;
+      background-position: center;
+      background-size: cover;
     }
     .demo-card-event > .mdl-card__actions {
       border-color: rgba(255, 255, 255, 0.2);

@@ -1,5 +1,5 @@
-$ini-accent-color: rgb(121,85,72);
-$ini-primary-color: #eee9db;
+$ini-accent-color: #ddd;
+$ini-primary-color: rgb(158,158,158);
 $vip-black: #262626;
 $ini-primary-font-color: #262626;
 
@@ -7,7 +7,7 @@ $screen-sm-min: 768px;
 $screen-md-min: 992px;
 $screen-lg-min: 1200px;
 
-$body-bg-color: lighten($ini-primary-color, 2);
+$body-bg-color: lighten($ini-accent-color, 10);
 
 .color--white {
   color: white;
@@ -22,6 +22,16 @@ $body-bg-color: lighten($ini-primary-color, 2);
 ::-moz-selection {
   color: white;
   background-color: $ini-accent-color;
+}
+.element .inner::selection {
+  color: inherit;
+  background-color: rgba($ini-primary-color,0.43);
+}
+.element .inner *::selection {
+  color: inherit;
+  background-color: rgba($ini-primary-color,0.43);
+}*:not(.element) {
+  user-select: none;
 }
 html {
   -webkit-box-sizing: border-box;
@@ -48,7 +58,7 @@ body {
   width: 0;
 }
 #main-header {
-  background-color: $ini-primary-color;
+  background: $ini-accent-color linear-gradient(to bottom, #ffffff, $ini-accent-color);
   position: relative;
   z-index: 59;
   font-family: 'Gloria Hallelujah', cursive;
@@ -72,9 +82,9 @@ body {
   .brand-logo {
     position: relative;
     a {
-      font-size: 1em;
+      font-size: 2.8em;
       font-weight: 900;
-      color: darken($ini-primary-color, 20);
+      color: darken($ini-primary-color, 10);
       font-family: 'Gloria Hallelujah', cursive;
     }
     .circles {
@@ -82,8 +92,8 @@ body {
       top: 50%;
       left: 50%;
       transform: translate3d(-50%, -50%, 0);
-      width: 3.2em;
-      height: 3.2em;
+      width: 3em;
+      height: 3em;
       z-index: -1;
     }
   }
@@ -194,6 +204,9 @@ body {
   position: relative;
   margin-left: 0;
   //transition: margin-left 250ms;
+  #pages {
+    position: relative;
+  }
   .element {
     position: absolute;
     top: 0;
@@ -240,7 +253,7 @@ body {
       opacity: 0.75;
     }
     &.selected {
-      box-shadow: none;
+      box-shadow: 0 0 15px rgba($ini-primary-color,1);
     }
 
     .elements {
@@ -302,6 +315,10 @@ $selection-handle-size: 8px;
     position: absolute;
     z-index: 1;
 
+    &.card-note .handle, &.card-square .handle, &.card-wide .handle, &.card-tag .handle, &.audio {
+      display: none;
+    }
+
     .body {
       position: absolute;
       top: -1px;
@@ -317,7 +334,7 @@ $selection-handle-size: 8px;
       right: -15px;
       bottom: -15px;
       left: -15px;
-      background-color: rgba($ini-primary-color, 0.6);
+      background-color: rgba($ini-primary-color, 0.2);
     }
     .handle {
       content: "";
@@ -325,7 +342,7 @@ $selection-handle-size: 8px;
       position: absolute;
       width: $selection-handle-size;
       height: $selection-handle-size;
-      background-color: rgba($ini-accent-color, 0.6);
+      background-color: rgba($ini-accent-color, 0.9);
       cursor: pointer;
       &:hover {
         background-color: rgba($ini-accent-color, 1);
@@ -435,7 +452,7 @@ $selection-handle-size: 8px;
 }
 .pure-box {
   background-color: white;
-  box-shadow: 0 0 5px rgba(black,0.3);
+  box-shadow: 0 0 8px rgba(black,0.4);
 }
 .bg-white {
   background-color: white;
@@ -460,7 +477,7 @@ $selection-handle-size: 8px;
   }
   .header {
     background-color: #444444;
-    height: 18%;
+    height: 12%;
     h1 {
       font-family: 'Noto Sans CJK JP Light', 'Roboto', 'Arial', 'Helvetica', sans-serif;
       color: $ini-primary-color;
@@ -475,7 +492,7 @@ $selection-handle-size: 8px;
     outline: none;
   }
   .content {
-    height: calc(82% - 40px);
+    height: calc(88% - 40px);
     overflow: auto;
     background-color: #343434;
     @keyframes imgItemAdded {
@@ -521,7 +538,7 @@ $selection-handle-size: 8px;
           transform: translate3d(0, 100%, 0);
           outline: none;
           border: 0;
-          background-color: rgba(black, 0.75);
+          background-color: rgba(black, 0.6);
           color: white;
           cursor: pointer;
           margin: 0 0.2em;
@@ -538,7 +555,7 @@ $selection-handle-size: 8px;
     text-decoration: none;
   }
   .toggle {
-    background-color: $ini-accent-color;
+    background-color: darkcyan;
     color: white !important;
     transition: background-color 300ms;
     &.collapsed {
@@ -549,7 +566,7 @@ $selection-handle-size: 8px;
 #upload-img-btn {
   outline: none;
   width:4em;
-  background-color: $ini-accent-color;
+  background-color: darkcyan;
   color: white;
   cursor: pointer;
   border: 0;
@@ -611,7 +628,7 @@ input[type=date], input[type=number] {
     left: 0;
     top: 0;
     display: block;
-    stroke: $ini-accent-color;
+    stroke: $ini-primary-color;
     &.v {
       width: 1px;
       opacity: 0;
@@ -630,24 +647,80 @@ input[type=date], input[type=number] {
     opacity: 1;
   }
 }
-.dropdown-item {
-  cursor: default;
-}
 .cursor-move {
   cursor: move;
 }
 #popular-components {
   .component-container {
+    position: relative;
     width: calc(100%/3);
     height: 150px;
     padding: 0.3em;
     min-width: 80px;
     flex-grow: 1;
+    transition: width 200ms, height 200ms;
+
+    &.focus {
+      width: 100%;
+      height: 248px;
+      .detail-settings {
+        visibility: visible;
+        opacity: 1;
+      }
+      .component {
+        align-items: flex-start;
+        justify-content: flex-start;
+        opacity: 0.5;
+      }
+    }
+    .detail-settings {
+      transition: visibility 200ms, opacity 200ms;
+      padding: 0.3em 1em;
+      visibility: hidden;
+      display: flex;
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      overflow: hidden;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      flex-wrap: wrap;
+      .click-un-focus {
+        position: absolute;
+        right: 1em;
+        bottom: 1em;
+      }
+      input.text {
+        color: $ini-accent-color;
+        outline: none;
+        border: 0;
+        background-color: #444444;
+        padding: 0 0.5em;
+        line-height: 36px;
+      }
+      select {
+        color: $ini-accent-color;
+        background-color: #444444;
+      }
+      button.create {
+        outline: none;
+        font-weight: bold;
+        color: darken($ini-accent-color, 10);
+        border-radius: 0;
+      }
+      span.mdl-checkbox__label {
+        top: -2px;
+      }
+    }
   }
   .component {
     user-select: none;
     cursor: pointer;
-    color: #84754e;
+    color: $ini-accent-color;
     box-shadow: 1px 1px 0  0 darken(#393939, 5),2px 2px 0  0 darken(#393939, 5),3px 3px 0  0 darken(#393939, 5),4px 4px 0  0 darken(#393939, 5);
     width: 100%;
     background-color: #393939;
@@ -660,9 +733,6 @@ input[type=date], input[type=number] {
       transform: translate(4px, 4px);
       box-shadow: -1px -1px 0  0 darken(#393939, 5),-2px -2px 0  0 darken(#393939, 5),-3px -3px 0  0 darken(#393939, 5),-4px -4px 0  0 darken(#393939, 5);
     }
-    .material-icons {
-      font-size: 3.2em;
-    }
   }
 }
 #form-builder-container {
@@ -672,19 +742,39 @@ input[type=date], input[type=number] {
     margin-right: -32px;
   }
   .modal-header, .modal-footer {
-    background-color: $ini-primary-color;
+    background-color: $ini-accent-color;
   }
   .modal-body {
-    background-color: lighten($ini-primary-color, 2);
+    background-color: lighten($ini-accent-color, 2);
   }
   .frmb-control li {
-    background: $ini-primary-color;
+    background: $ini-accent-color;
     border-radius: 0;
   }
   .frmb {
-    background-color: $ini-primary-color;
+    background-color: $ini-accent-color;
   }
 }
 #do-export {
   color: darken($ini-primary-color, 20);
+  outline: none;
+}
+.element.form .form-control {
+  height: auto;
+}
+.mdl-snackbar {
+  z-index: 2000;
+}
+.text-primary {
+  color: $ini-primary-color;
+}
+.text-accent {
+  color: $ini-accent-color;
+}
+.children-vertical-center > * {
+  display: inline-block;
+  vertical-align: middle;
+}
+.wsp-nowrap {
+  white-space: nowrap;
 }

@@ -14,7 +14,8 @@
       ADD_FORM: 'add-form',
       ADD_COMP: 'add-comp',
       ADD_AUDIO: 'add-audio',
-      ADD_VIDEO: 'add-video'
+      ADD_VIDEO: 'add-video',
+      ADD_SHAPE: 'add-shape'
     },
     utils: {
       getElOffsetCenter: function (target) {
@@ -158,18 +159,27 @@
             clearInterval(waitLoadId);
             win.close();
           }
-        }, 200);
+        }, 100);
       }
     }
   };
 
   /**
+   * 新建一个中介者，主要针对画布上的操作行为进行处理控制
    * @class canvasCtrl
-   * @type {Mediator}
+   * @constructor {Mediator}
    */
   var canvasCtrl = new Mediator();
+  /**
+   * 新建一个中介者，对与网页主界面相关的用户操作进行控制
+   * @class uiCtrl
+   * @constructor {Mediator}
+   */
   var uiCtrl = new Mediator();
 
+  /**
+   * 在下列函数包里面集中处置关于编辑页面内容本身相关的操作
+   */
   (function (canvasCtrl) {
     var overlays = $('#overlays');
     var selectionBox = common.utils.getElemFromTpl('#tpl--selection-box');
@@ -179,53 +189,64 @@
     alLines.remove();
 
     /**
-     * When anything but currently active element is clicked,
-     * the active element will be inactive.
-     * @param {Event} event - Get touched target from this event
+     * 处理编辑页面的范围内的点击事件
+     * @param {Event} event 点击事件
      */
     function onCanvasPageClick(event) {
       uiCtrl.publish('updatePageSizeMd', $(this).width(), $(this).height());
       $(this).addClass('selected').siblings('.page').removeClass('selected');
-      selectedPageCtn = $(this).find('.elements');
       var target = $(event.target).closest('.element');
       if (activeEl) {
         if (!target.is(activeEl)) {
           setElActive(activeEl, false);
         }
       }
+      selectedPageCtn = $(this).find('.elements');
+      $(document.body, document).animate({
+        scrollTop: selectedPageCtn.offset().top - 90
+      }, 200);
       if (target.is('.element')) {
         setElActive(target, true);
       }
     }
 
     /**
-     * When subscribed 'addPage' event is published
-     * @param {object} pageEl - jQuery object of page elem
+     * 当“新增页面”事件发生的时候，触发此事件，为新增的页面增加事件处理函数
+     * @param {Object} pageEl - 新增页面的JQuery对象
      */
     function onAddPage(pageEl) {
       pageEl.click(onCanvasPageClick);
       pageEl.click();
     }
 
+    /**
+     * 时间处理函数，设定当前被选择页面的宽度和长度
+     * @param {Number} width 设定的目标宽度
+     * @param {Number} height 设定的目标长度
+     */
     function onChangePageSize(width, height) {
+      var bk = activeEl;
       if (activeEl) {
         setElActive(activeEl, false);
       }
       if (selectedPageCtn) {
         var page = selectedPageCtn.closest('.page');
-        if (width && height) {
+        if (width && height && ~~width > 0 && ~~height > 0) {
           page.width(width).height(height);
         } else {
           page.width(page.width()).height(page.height());
         }
       }
-      var left = ($('#canvas-pages').outerWidth() - page.width()) / 2;
-      left = left > 0 ? left : 0;
-      page.css({
-        left: left
-      });
+      rearrangePages();
+      if (bk) {
+        setElActive(bk, true);
+      }
     }
 
+    /**
+     * 当首页上面的“移除元素”按钮触发的时候，这个函数被调用
+     * @param {Object} target - JQuery Object, 想要删除的元素，可选，如果有传入就移除它，否则就移除活跃的元素/页面
+     */
     function onRmItem(target) {
       if (target) {
         target.remove();
@@ -249,14 +270,29 @@
       selectionBox.remove();
     }
 
+    /**
+     * （页面删除之后，或是修改尺寸之后）重新组织所有页面布局
+     */
     function rearrangePages() {
       var offsetY = 0;
+      var left;
+      var outerWidth = $('#canvas-pages').outerWidth();
+      var maxScale = 1;
       $('.page').each(function () {
         $(this).css('top', offsetY);
-        offsetY += $(this).height() + 75;
+        offsetY += $(this).height() + 36;
+        left = (outerWidth - $(this).width()) / 2;
+        left = left > 0 ? left : 0;
+        $(this).css({
+          left: left
+        });
       });
     }
 
+    /**
+     * 根据传入的图片链接修改元素/页面的背景图片
+     * @param {String} imgSrc 图片URL
+     */
     function changeBg(imgSrc) {
       var bgCSSObj = {
         'background-image': 'url(' + imgSrc + ')'
@@ -266,6 +302,8 @@
           activeEl.find('.mdl-card__title').css(bgCSSObj);
         } else if (activeEl.is('.comp.card-note') || activeEl.is('.comp.card-tag')) {
           activeEl.find('.mdl-card').css(bgCSSObj);
+        } else if (activeEl.is('.shape')) {
+          uiCtrl.publish('showWarning', '形状元素无法设置复杂图案作为背景');
         } else {
           activeEl.find('.inner').css(bgCSSObj);
         }
@@ -274,6 +312,10 @@
       }
     }
 
+    /**
+     * 根据传入的色值修改元素/页面背景颜色
+     * @param {String} colorCode 颜色值，例如rgba(...), #XXXXXX
+     */
     function changeBgColor(colorCode) {
       var bgCSSObj = {
         'background-color': colorCode,
@@ -284,6 +326,8 @@
           activeEl.find('.mdl-card__title').css(bgCSSObj);
         } else if (activeEl.is('.comp.card-note') || activeEl.is('.comp.card-tag')) {
           activeEl.find('.mdl-card').css(bgCSSObj);
+        } else if (activeEl.is('.shape')) {
+          activeEl.find('svg > *').attr('fill', colorCode);
         } else {
           activeEl.find('.inner').css(bgCSSObj);
         }
@@ -292,20 +336,35 @@
       }
     }
 
+    /**
+     * 撤销元素活跃（编辑）状态
+     */
     function blurActiveEl() {
       if (activeEl) {
         setElActive(activeEl, false);
       }
     }
 
-    function applyAnimation(x) {
+    /**
+     * 对处于编辑状态的元素应用动画效果
+     * @param x
+     */
+    function applyAnimation(options) {
       if (activeEl) {
-        activeEl.find('.inner').removeClass().addClass('inner animated').addClass(x);
+        activeEl.find('.inner').removeClass().addClass('inner animated').addClass(options.name).css({
+          'animation-duration': options.duration + 'ms',
+          'animation-delay': options.delay + 'ms',
+          '-webkit-animation-duration': options.duration + 'ms',
+          '-webkit-animation-delay': options.delay + 'ms'
+        });
       } else {
         uiCtrl.publish('showWarning', '先选择想要应用动画的物件');
       }
     }
 
+    /**
+     * 中介者canvasCtrl订阅一系列侦听事件
+     */
     canvasCtrl.subscribe('addPage', onAddPage);
     canvasCtrl.subscribe('removeItem', onRmItem);
     canvasCtrl.subscribe('addNewItem', addNewItem);
@@ -316,13 +375,24 @@
     canvasCtrl.subscribe('rearrangePages', rearrangePages);
     canvasCtrl.subscribe('applyAnimation', applyAnimation);
 
+    /**
+     * 传递给外界处于编辑状态的元素
+     * @returns {Object} activeEl
+     */
     canvasCtrl.getActiveEl = function () {
       return activeEl;
     };
+    /**
+     * 传递给外界被选择的页面元素
+     * @returns {*}
+     */
     canvasCtrl.getSelectedPageCtn = function () {
       return selectedPageCtn;
     };
 
+    /**
+     * 对可编辑页面和元素进行处理，所以可以拖动、缩放
+     */
     common.utils.makeElResizable('.page',
       {right: '.resize-handle', bottom: '.resize-handle'});
     common.utils.makeElResizable('.selection-box.text, .selection-box.form, .selection-box.video', {
@@ -332,7 +402,7 @@
       left: '.l, .lt, .lb',
       action: 'resizeSelected'
     });
-    common.utils.makeElResizable('.selection-box.image', {
+    common.utils.makeElResizable('.selection-box.image, .selection-box.shape', {
       preserveAspectRatio: true,
       top: '.t, .lt, .rt',
       right: '.r, .rt, .rb',
@@ -356,35 +426,35 @@
         var hasH = false, hasV = false;
         selectedPageCtn.find('.element').each(function () {
           var siblingOC = common.utils.getElOffsetCenter($(this));
-          if (Math.abs(siblingOC.cx - offsetCenter.cx) <= 2) {
+          if (Math.abs(siblingOC.cx - offsetCenter.cx) <= 3) {
             hasV = true;
             common.utils.updatePosition(alLines.children('.v'), siblingOC.cx, 0);
             offsetCenter.cx = siblingOC.cx;
           }
-          if (Math.abs(siblingOC.cy - offsetCenter.cy) <= 2) {
+          if (Math.abs(siblingOC.cy - offsetCenter.cy) <= 3) {
             hasH = true;
             common.utils.updatePosition(alLines.children('.h'), 0, siblingOC.cy);
             offsetCenter.cy = siblingOC.cy;
           }
         });
-        if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth() / 2) <= 2) {
+        if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth() / 2) <= 3) {
           hasV = true;
           common.utils.updatePosition(alLines.children('.v'), selectedPageCtn.outerWidth() / 2, 0);
           offsetCenter.cx = selectedPageCtn.outerWidth() / 2;
         }
-        if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight() / 2) <= 2) {
+        if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight() / 2) <= 3) {
           hasH = true;
           common.utils.updatePosition(alLines.children('.h'), 0, selectedPageCtn.outerHeight() / 2);
           offsetCenter.cy = selectedPageCtn.outerHeight() / 2;
         }
         common.utils.updatePosition(target, offsetCenter.cx + dx - target.outerWidth() / 2, offsetCenter.cy + dy - target.outerHeight() / 2);
         if (hasH) {
-          alLines.addClass('show-h').children('.h').attr('width', selectedPageCtn.outerWidth() + 'px');
+          alLines.addClass('show-h').children('.h').attr('width', selectedPageCtn.outerWidth());
         } else {
           alLines.removeClass('show-h');
         }
         if (hasV) {
-          alLines.addClass('show-v').children('.v').attr('height', selectedPageCtn.outerHeight() + 'px');
+          alLines.addClass('show-v').children('.v').attr('height', selectedPageCtn.outerHeight());
         } else {
           alLines.removeClass('show-v');
         }
@@ -404,35 +474,35 @@
         var hasH = false, hasV = false;
         target.siblings('.element').each(function () {
           var siblingOC = common.utils.getElOffsetCenter($(this));
-          if (Math.abs(siblingOC.cx - offsetCenter.cx) <= 2) {
+          if (Math.abs(siblingOC.cx - offsetCenter.cx) <= 3) {
             hasV = true;
             common.utils.updatePosition(alLines.children('.v'), siblingOC.cx, 0);
             offsetCenter.cx = siblingOC.cx;
           }
-          if (Math.abs(siblingOC.cy - offsetCenter.cy) <= 2) {
+          if (Math.abs(siblingOC.cy - offsetCenter.cy) <= 3) {
             hasH = true;
             common.utils.updatePosition(alLines.children('.h'), 0, siblingOC.cy);
             offsetCenter.cy = siblingOC.cy;
           }
         });
-        if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth() / 2) <= 2) {
+        if (Math.abs(offsetCenter.cx - selectedPageCtn.outerWidth() / 2) <= 3) {
           hasV = true;
           common.utils.updatePosition(alLines.children('.v'), selectedPageCtn.outerWidth() / 2, 0);
           offsetCenter.cx = selectedPageCtn.outerWidth() / 2;
         }
-        if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight() / 2) <= 2) {
+        if (Math.abs(offsetCenter.cy - selectedPageCtn.outerHeight() / 2) <= 3) {
           hasH = true;
           common.utils.updatePosition(alLines.children('.h'), 0, selectedPageCtn.outerHeight() / 2);
           offsetCenter.cy = selectedPageCtn.outerHeight() / 2;
         }
         common.utils.updatePosition(target, offsetCenter.cx - target.outerWidth() / 2, offsetCenter.cy - target.outerHeight() / 2);
         if (hasH) {
-          alLines.addClass('show-h').children('.h').attr('width', selectedPageCtn.outerWidth() + 'px');
+          alLines.addClass('show-h').children('.h').attr('width', selectedPageCtn.outerWidth());
         } else {
           alLines.removeClass('show-h');
         }
         if (hasV) {
-          alLines.addClass('show-v').children('.v').attr('height', selectedPageCtn.outerHeight() + 'px');
+          alLines.addClass('show-v').children('.v').attr('height', selectedPageCtn.outerHeight());
         } else {
           alLines.removeClass('show-v');
         }
@@ -443,13 +513,13 @@
     });
 
     /**
-     * When an element is focused/blur, show/hide the selection box
-     * @param {object} elem - jQuery object
-     * @param {boolean} wrap - show or hide the selection box
+     * 给元素套上/撤去选择盒子
+     * @param {Object} elem - JQuery object 针对的目标元素
+     * @param {Boolean} wrap - 套上/撤去选择盒子
      */
     function setWrapSelectionBox(elem, wrap) {
       var ctt = elem.data('type');
-      selectionBox.removeClass('text image form').addClass(ctt);
+      selectionBox.removeClass().addClass('selection-box').addClass(ctt);
       wrap = typeof wrap === 'undefined' ? true : wrap;
       var x = parseFloat(elem.attr('data-x') || 0);
       var y = parseFloat(elem.attr('data-y') || 0);
@@ -484,9 +554,9 @@
     }
 
     /**
-     * Active elements are meant to be selected
-     * @param {object} elem - jQuery object
-     * @param {boolean} active - make the elem active or inactive
+     * 设置某个元素为编辑状态或是取消此状态
+     * @param {Object} elem - JQuery object 目标元素
+     * @param {Boolean} active - 设置编辑状态/取消
      */
     function setElActive(elem, active) {
       elem = $(elem);
@@ -508,20 +578,20 @@
     }
 
     /**
-     * Create new common node for specific use
-     * @param {string} nodeName - name of the node, mostly 'div'
-     * @param {object} cssOptions - wrapped with css styles
-     * @return {object} - built jQuery object
+     * 新增一个通用节点
+     * @param {String} nodeName - 节点（标签）名称，通常是“div”
+     * @param {Object} cssOptions - 作为CSS键值对传入到JQuery的$.css方法中
+     * @return {Object} - 返回初步构建好的节点对象，是JQuery对象
      */
     function createNode(nodeName, cssOptions) {
       var node = $(document.createElement('div'));
-      var innerNode = $(document.createElement(nodeName)).addClass('inner');
+      var innerNode = $(document.createElement(nodeName)).addClass('inner').attr('spellcheck', false);
       node.append(innerNode);
       return node.css(cssOptions || {}).addClass('element');
     }
 
     /**
-     * Create a new text element
+     * 添加新的文本以供编辑
      */
     function addText() {
       var textNode = createNode('div');
@@ -530,6 +600,10 @@
       document.execCommand('selectAll', false);
     }
 
+    /**
+     * 添加新的图片块
+     * @param {String} imgSrc 要创建的图片的URL
+     */
     function addImg(imgSrc) {
       var img = new Image();
       img.src = imgSrc;
@@ -540,12 +614,20 @@
       };
     }
 
+    /**
+     * 把创建好的表格添加到页面中
+     * @param {String} rndHTML 新建表格的HTML代码
+     */
     function addForm(rndHTML) {
       var formNode = createNode('div');
       formNode.addClass('form').data('type', 'form').find('.inner').append(rndHTML);
       setElActive(formNode, true);
     }
 
+    /**
+     * 添加部件到页面中以供编辑
+     * @param {Object} args 关于部件更详细的参数信息
+     */
     function addComp(args) {
       args = args || {};
       var htm = args.html;
@@ -555,6 +637,10 @@
       setElActive(compNode, true);
     }
 
+    /**
+     * 添加audio元素到页面中
+     * @param {Object} args 关于这个audio元素的更多信息
+     */
     function addAudio(args) {
       var loop = args.loop;
       var autoplay = args.autoplay;
@@ -562,7 +648,6 @@
       src = decodeURIComponent(src);
 
       var audioWrap = document.createElement('div');
-      audioWrap.className = 'p-2';
       var audio = document.createElement('audio');
       audio.src = src;
       audio.loop = loop;
@@ -576,10 +661,13 @@
       setElActive(audioNode, true);
     }
 
+    /**
+     * 添加video元素到页面中
+     * @param {Object} args 关于这个video元素的更多信息
+     */
     function addVideo(args) {
       var embedCode = args.embedCode;
       var videoWrap = document.createElement('div');
-      videoWrap.className = 'p-2';
       videoWrap.innerHTML = embedCode;
 
       var videoNode = createNode('div');
@@ -587,13 +675,34 @@
       setElActive(videoNode, true);
     }
 
+    function addShape(args) {
+      var shape = args.type;
+      var width = args.width || 100;
+      var height = args.height || 100;
+      var code;
+      if (shape === 'triangle') {
+        code = '<svg width="100%" height="100%" viewBox="0 0 100 100"><polygon points="0,100 50,0 100,100" fill="greenyellow"></polygon> </svg>';
+      } else if (shape === 'rectangle') {
+        code = '<svg width="100%" height="100%"><rect height="100%" width="100%" fill="greenyellow"></rect></svg>';
+      } else if (shape === 'circle') {
+        code = '<svg width="100%" height="100%"><circle r="50%" cx="50%" cy="50%" fill="greenyellow"></circle></svg>';
+      }
+      var shapeNode = createNode('div');
+      shapeNode.addClass('shape').data('type', 'shape ' + shape).css({
+        width: width,
+        height: height
+      }).find('.inner').append(code);
+      setElActive(shapeNode, true);
+    }
+
     /**
-     * Create any rich text element like text, pictures, etc
-     * @param {string} command - used to specifically create an element
-     * @param {string} extra - optional but sometimes we need
+     * 处理添加新元素到页面中事宜
+     * @param {String} command 创建新元素的命令，指明了是要创建什么元素
+     * @param {String} extra 有关这个要创建元素的更多信息，可选
      */
     function addNewItem(command, extra) {
       if (!selectedPageCtn) {
+        uiCtrl.publish('showWarning', '当前没有选定任何画布，请选择一个画布，或者添加新页', 3000);
         return;
       }
       if (activeEl) {
@@ -618,48 +727,21 @@
         case common.commands.ADD_VIDEO:
           addVideo(extra);
           break;
+        case common.commands.ADD_SHAPE:
+          addShape(extra);
+          break;
         default:
           break;
       }
     }
   })(canvasCtrl);
 
+  /**
+   *在下列函数包里面集中处置主界面按钮操作相关的事情
+   */
   (function (canvasCtrl) {
     var tbMain = $('#tb--main');
     var closeBtn = $('.close-btn');
-
-    /**
-     * Handle it when user click a button on the main toolbar
-     */
-    function onMainTbItemClick() {
-      var targetEl = $(this);
-      var command = targetEl.attr('data-command');
-      if (command) {
-        canvasCtrl.publish('addNewItem', command);
-      }
-      var toggleId = targetEl.attr('data-toggle-id');
-      if (toggleId) {
-        var target = $('#' + toggleId).toggleClass('show');
-        target.siblings('.slidebar').removeClass('show');
-        if (target.hasClass('show')) {
-          $(document.body).addClass('slidebar-open');
-        } else {
-          $(document.body).removeClass('slidebar-open');
-        }
-        uiCtrl.publish('load-' + toggleId);
-        // canvasCtrl.publish('changePageSize');
-      }
-    }
-
-    tbMain.children().click(onMainTbItemClick);
-    closeBtn.click(function () {
-      $(this).closest('.slidebar').removeClass('show');
-      $(document.body).removeClass('slidebar-open');
-      // canvasCtrl.publish('changePageSize');
-    });
-  })(canvasCtrl);
-
-  (function (canvasCtrl) {
     var addPageBtn = $('#add-page');
     var canvasPages = $('#canvas-pages');
     var rmItemBtn = $('#remove-item');
@@ -675,28 +757,64 @@
     var fbContainer = $('#form-builder-container');
     var compStore = $('#popular-components');
     var snackbarContainer = document.querySelector('#demo-snackbar-example');
+    var fileImpHTML = $('#import-html');
 
     /**
-     * When right-bottom add-page button is clicked
+     * 用户点击主功能栏的事件处理函数
      */
-    function onAddPageBtnClick() {
-      var pageEl = common.utils.getElemFromTpl('#tpl--page');
-      var lastPage = $('.page').last();
-      if (lastPage.length) {
-        pageEl.css('top', lastPage.position().top + lastPage.height() + 75);
+    function onMainTbItemClick() {
+      var targetEl = $(this);
+      var command = targetEl.attr('data-command');
+      if (command) {
+        canvasCtrl.publish('addNewItem', command);
       }
-      pageEl.attr('id', 'page-' + new Date().getTime());
-      canvasPages.children('#pages').append(pageEl);
-      canvasCtrl.publish('addPage', pageEl);
-      canvasCtrl.publish('changePageSize');
+      var toggleId = targetEl.attr('data-toggle-id');
+      if (toggleId) {
+        targetEl.addClass('active').siblings('.command').removeClass('active');
+        var target = $('#' + toggleId).addClass('show');
+        target.siblings('.slidebar').removeClass('show');
+        if (target.hasClass('show')) {
+          $(document.body).addClass('slidebar-open');
+        } else {
+          $(document.body).removeClass('slidebar-open');
+        }
+        uiCtrl.publish('load-' + toggleId);
+        // canvasCtrl.publish('changePageSize');
+      }
     }
 
+    /**
+     * 添加页面按钮被触发的时候的事情回调函数
+     */
+    function onAddPageBtnClick() {
+      canvasCtrl.publish('blurActiveEl');
+      var pageEl = common.utils.getElemFromTpl('#tpl--page').height($(window).height() - 126);
+      // var lastPage = $('.page').last();
+      // if (lastPage.length) {
+      //   pageEl.css('top', lastPage.position().top + lastPage.height() + 75);
+      // }
+      pageEl.attr('id', 'page-' + new Date().getTime());
+      canvasPages.children('#pages').append(pageEl);
+      canvasCtrl.publish('changePageSize');
+      canvasCtrl.publish('addPage', pageEl);
+    }
+
+    /**
+     * 添加一个页面
+     */
     onAddPageBtnClick();
 
+    /**
+     * 用户点击删除元素按钮的事件处理函数
+     */
     function onRmItemBtnClick() {
       canvasCtrl.publish('removeItem');
     }
 
+    /**
+     * 管理临时工具栏的显示
+     * @param {Object} options 更多详细设定
+     */
     function showHotTools(options) {
       options = options || {};
       if (options.action) {
@@ -706,6 +824,12 @@
       }
     }
 
+    /**
+     * 在富文本编辑状态下，会出现需要用户填写更多信息的情况，比如插入链接
+     * @param command
+     * @param promptText
+     * @param promptDefault
+     */
     function doPopupCommand(command, promptText, promptDefault) {
       var usrInput = prompt(promptText, promptDefault);
       if (usrInput) {
@@ -713,6 +837,9 @@
       }
     }
 
+    /**
+     * 注册临时工具栏点击事件处理函数
+     */
     function onHotToolsClick() {
       var self = $(this);
       var extraParam = null;
@@ -750,11 +877,17 @@
       }
     }
 
+    /**
+     *  富文本编辑框修改字体大小
+     */
     function changeEdFontSz() {
       $('font[size]').css('font-size', currentFontSize + 'px').removeAttr('size');
       this.removeEventListener('keyup', changeEdFontSz);
     }
 
+    /**
+     * 安装第三方颜色选择器
+     */
     function installPickers() {
       bindColorPicker('#fgcolor-button', '#000000', function (color) {
         document.execCommand('foreColor', false, color.toHexString());
@@ -767,6 +900,12 @@
       });
     }
 
+    /**
+     * 绑定第三方颜色选择器
+     * @param {String} selector 想要绑定的目标元素的选择器字符串
+     * @param {String} setupColor 初始化颜色
+     * @param {Function} cb 用户在颜色选择器上修改颜色之后触发的事件回调函数
+     */
     function bindColorPicker(selector, setupColor, cb) {
       $(selector).spectrum({
         color: setupColor,
@@ -810,37 +949,55 @@
       });
     }
 
+    /**
+     * 当用户触发网页右上角的修改页面尺寸文本域时就修改当前被选择页面的尺寸
+     */
     function changePageSize() {
       var w = pageSizeMd.find('.page-width').val();
       var h = pageSizeMd.find('.page-height').val();
       canvasCtrl.publish('changePageSize', w, h);
     }
 
+    /**
+     * 右上角的修改页面尺寸文本域通过回车键触发
+     * @param {Event} event
+     */
     function onPageSizeMdKeyup(event) {
       if (event.keyCode === 13) {
         changePageSize();
       }
     }
 
+    /**
+     * 更新右上角页面尺寸输入域值
+     * @param {Number} width
+     * @param {Number} height
+     */
     function updatePageSizeMd(width, height) {
       pageSizeMd.find('.page-width').val(width).end().find('.page-height').val(height).end().find('.mdl-textfield').addClass('is-dirty');
     }
 
+    /**
+     * 加载图片仓库的函数
+     */
     function loadImgLib() {
       if (imgLibLoaded) {
         return;
       }
       imgLibLoaded = true;
-      loadSpecialImages();
       loadColorPlatte();
+      loadSpecialImages();
     }
 
+    /**
+     * 加载图片库中的色板
+     */
     function loadColorPlatte() {
-      var colors = ['#2d0921', '#c5c159', '#ffc0cb', '#012d5a', '#ad0725', '#913053', '#59112c',
-        '#37a2b2', '#99ffdd', '#aaf1be', '#000000', '#f97508', '#66217e', '#ffe5fc', '#e5d0d7', '#beffab', '#abbeff', '#c2abff'];
-      var len = colors.length;
-      for (var i = 0; i < len; i++) {
-        appendColorPlatte(colors[i]);
+      // var colors = ['#2d0921', '#c5c159', '#ffc0cb', '#012d5a', '#ad0725', '#913053', '#59112c',
+      //   '#37a2b2', '#99ffdd', '#aaf1be', '#000000', '#f97508', '#66217e', '#ffe5fc', '#e5d0d7', '#beffab', '#abbeff', '#c2abff'];
+      // var len = colors.length;
+      for (var i = 0; i < 18; i++) {
+        appendColorPlatte('#' + Math.floor(0xffffff * Math.random()).toString(16));
       }
     }
 
@@ -854,13 +1011,13 @@
       imgLib.find('#special-bg-images .inner').append(tpl.replaceAll('{{img-src}}', imgSrc));
     }
 
+    /**
+     * 加载特色图片
+     */
     function loadSpecialImages() {
       var images = [
         'http://www.amazingwallpaperz.com/wp-content/uploads/Abstract-Painting-Wallpaper-Mobile-Phones.jpg',
-        'https://static.pexels.com/photos/5836/yellow-metal-design-decoration.jpg',
         'http://www.cianellistudios.com/images/abstract-paintings/abstract-paintings-splash.jpg',
-        'http://img3.xiazaizhijia.com/walls/20161209/1920x1080_e33062551f5890f.jpg',
-        'http://4493bz.1985t.com/uploads/allimg/141014/3-141014100632.jpg',
         'http://4493bz.1985t.com/uploads/allimg/150722/1-150H2142Q0.jpg',
         'http://pic1.win4000.com/wallpaper/1/50445a0a38168.jpg',
         'https://inspirationseek.com/wp-content/uploads/2014/06/Art-Abstract-Painting.jpg',
@@ -871,7 +1028,11 @@
         'images/comp_zard_smile_wide.jpg',
         'https://images.fineartamerica.com/images-medium-large-5/grid-3-jane-davies.jpg',
         'http://www.artworkcanvas.com/images/388_02.jpg',
-
+        'http://dreamatico.com/data_images/strawberry/strawberry-1.jpg',
+        'https://www.pohlmans.com.au/app/uploads/2014/02/Strawberry-Sweetheart1.jpg',
+        'http://www.rainbowresidence.ca/wp-content/uploads/2014/07/rainbow-accidentsm.jpg',
+        'http://fullhdpictures.com/wp-content/uploads/2015/10/Sea-Wallpaper-HD.jpg',
+        'http://www.eukanuba.ca/images/default-source/why-eukanuba/Articles-Assets/Dog-Articles-and-Resources/how-to-switch-from-puppy-to-adult-dog-food.jpg?sfvrsn=0',
       ];
       var imgNum = images.length;
       for (var i = 0; i < imgNum; i++) {
@@ -886,6 +1047,10 @@
       }
     }
 
+    /**
+     * 图片库侧边栏的点击事件回调函数
+     * @param {Event} event
+     */
     function onImgLibClick(event) {
       var target = $(event.target);
       if (target.is('.option')) {
@@ -902,8 +1067,12 @@
       }
     }
 
+    /**
+     * 初始化表单创建器
+     */
     function initializeFormBuilder() {
       if (!fb) {
+        showWarning('开始初始化表单创建机');
         var options = {
           i18n: {
             locale: 'zh-CN'
@@ -914,19 +1083,29 @@
       }
     }
 
+    /**
+     * 下载每个页面都下载成单独的HTML
+     */
     function dlHTML() {
       common.utils.getPageHTML('.elements', 'index.template.html', function (hml) {
-        common.utils.download('page.html', 'text/html', hml);
+        common.utils.download('page-' + new Date().getTime() + '.html', 'text/html', hml);
       });
     }
 
+    /**
+     * 打印页面
+     */
     function printHTML() {
       var win = window.open('', 'Preview', 'height=800,width=1280,toolbar=no,scrollbars=yes');
-      common.utils.getPageHTML('.elements', 'index.template.html', function (hml) {
+      common.utils.getPageHTML('.selected .elements', 'index.template.html', function (hml) {
         common.utils.print(hml, win);
       });
     }
 
+    /**
+     * 用户在表单创建器上的事件处理函数
+     * @param event
+     */
     function onFBContainerClick(event) {
       var target = $(event.target);
       if (fb && fb.actions && fb.actions.getData) {
@@ -945,10 +1124,14 @@
       }
     }
 
-    function showWarning(warning) {
+    /**
+     * 显示通知和警告
+     * @param {String} warning 通知内容
+     */
+    function showWarning(warning, timeout) {
       var data = {
         message: warning,
-        timeout: 2000,
+        timeout: timeout || 2000,
         actionHandler: null
       };
       snackbarContainer.MaterialSnackbar.showSnackbar(data);
@@ -965,7 +1148,7 @@
     }
 
     function onExpOptsClick(event) {
-      var target = $(event.target);
+      var target = $(this);
       canvasCtrl.publish('blurActiveEl');
       if (target.is('.dl')) {
         dlHTML();
@@ -974,20 +1157,66 @@
       }
     }
 
+    /**
+     * 初始化若干重载的上下文菜单
+     */
     function initializeCtxMenu() {
       $.contextMenu({
         selector: '#canvas-pages .page',
         items: {
           clone: {
-            name: "复制页面", callback: function () {
+            name: "拷贝画布", callback: function () {
               canvasCtrl.publish('blurActiveEl');
               this.clone(true).removeClass('selected context-menu-active').insertAfter(this);
               canvasCtrl.publish('rearrangePages');
             }
           },
           applyBgToAll: {
-            name: "应用页面背景到全部", callback: function () {
+            name: "应用本页背景到全部画布", callback: function () {
               this.siblings('.page').find('.elements').css('background', this.find('.elements').css('background'));
+            }
+          },
+          exportHTML: {
+            name: "导出到HTML", callback: function () {
+              canvasCtrl.publish('blurActiveEl');
+              common.utils.getPageHTML(this.find('.elements'), 'index.template.html', function (hml) {
+                common.utils.download('page-' + new Date().getTime() + '.html', 'text/html', hml);
+              });
+            }
+          },
+          loadPage: {
+            name: "从文件导入", callback: function () {
+              canvasCtrl.publish('blurActiveEl');
+              var self = this;
+              var callbackFunc = function () {
+                var file = this.files[0];
+                if (file) {
+                  uiCtrl.publish('showWarning', '正在载入');
+                  var reader = new FileReader();
+                  reader.readAsText(file, 'UTF-8');
+                  reader.onload = function () {
+                    var template = document.createElement('template');
+                    template.innerHTML = this.result;
+                    var page = $(template.content.querySelector('.page'));
+                    if (page.length) {
+                      self.html(page.html()).width(page.width()).height(page.height());
+                    }
+                  };
+                  reader.onerror = function () {
+                    uiCtrl.publish('showWarning', '读取文件出错');
+                  }
+                } else {
+                  uiCtrl.publish('showWarning', '未选择文件');
+                }
+              };
+              fileImpHTML.off().click().on('change', callbackFunc);
+            }
+          },
+          "sep1": "---------",
+          clearAll: {
+            name: "清空画布", callback: function () {
+              canvasCtrl.publish('blurActiveEl');
+              this.find('.elements').empty();
             }
           },
           removePage: {
@@ -998,22 +1227,37 @@
         },
         animation: {duration: 100, show: 'fadeIn', hide: 'fadeOut'}
       });
-      $.contextMenu({
-        selector: '#overlays .element',
-        items: {
-          OK: {
-            name: "确定", callback: function () {
-              canvasCtrl.publish('blurActiveEl');
-            }
-          },
-          remove: {
-            name: "移除", callback: function () {
-              canvasCtrl.publish('removeItem');
-            }
-          }
-        },
-        animation: {duration: 100, show: 'fadeIn', hide: 'fadeOut'}
-      });
+      // $.contextMenu({
+      //   selector: '#overlays .element',
+      //   items: {
+      //     // paste: {
+      //     //   name: "粘贴", callback: function () {
+      //     //     var self = this;
+      //     //     self.find('.inner').focus().off('paste').on('paste', function () {
+      //     //       console.log('paste event: ')
+      //     //     });
+      //     //     document.execCommand('paste', false);
+      //     //   }
+      //     // },
+      //     // pasteUnformatted: {
+      //     //   name: "无格式粘贴", callback: function () {
+      //     //
+      //     //   }
+      //     // },
+      //     OK: {
+      //       name: "确定编辑完成", callback: function () {
+      //         canvasCtrl.publish('blurActiveEl');
+      //       }
+      //     },
+      //     "sep1": "---------",
+      //     remove: {
+      //       name: "移除", callback: function () {
+      //         canvasCtrl.publish('removeItem');
+      //       }
+      //     }
+      //   },
+      //   animation: {duration: 100, show: 'fadeIn', hide: 'fadeOut'}
+      // });
       $.contextMenu({
         // define which elements trigger this menu
         selector: ".elements .element",
@@ -1048,6 +1292,7 @@
               this.clone().removeClass('context-menu-active').insertAfter(this);
             }
           },
+          "sep1": "---------",
           removeItem: {
             name: "移除", callback: function () {
               canvasCtrl.publish('removeItem', this);
@@ -1058,6 +1303,9 @@
       });
     }
 
+    /**
+     * 漏洞修复集中处理单元
+     */
     function bugFixes() {
       document.addEventListener('mouseup', function () {
         document.documentElement.style.cursor = 'auto'
@@ -1067,6 +1315,9 @@
       });
     }
 
+    /**
+     * 图片上传输入域发生修改时，也就是用户选择好了要上传的图片时的回调函数
+     */
     function onUpImgFieldChange() {
       var files = this.files;
       var i;
@@ -1076,6 +1327,10 @@
       }
     }
 
+    /**
+     * 用户在热门部件侧边栏上点击的事件处理函数
+     * @param event
+     */
     function onCompStoreClick(event) {
       var target = $(event.target);
       var component = target.closest('.component');
@@ -1088,6 +1343,9 @@
       }
     }
 
+    /**
+     * 当用户想要添加音乐、视频、动画的时候，需要进一步设置
+     */
     function installClickFocusBtns() {
       $('.click-focus').on('click', function () {
         var $self = $(this);
@@ -1099,6 +1357,9 @@
       });
     }
 
+    /**
+     * 安装音频、视频部件安装器
+     */
     function installMediaComp() {
       var audioSrc;
       var autoplayAudio;
@@ -1128,18 +1389,41 @@
       });
     }
 
+    /**
+     * 安装动画特效设置
+     */
     function installAnimationTool() {
-      var animation;
+      var animationName, animationDur, animationDl;
       $('#activate-animation').on('click', function () {
-        animation = $('#select-animation').val();
-        canvasCtrl.publish('applyAnimation', animation);
+        animationName = $('#select-animation').val();
+        animationDl = $('#animate-delay').val();
+        animationDur = $('#animate-duration').val();
+        canvasCtrl.publish('applyAnimation', {name: animationName, duration: animationDur, delay: animationDl});
       });
     }
 
+    function installShapeMaker() {
+      var shape;
+      $('#create-shape').on('click', function () {
+        shape = $('#select-shape').val();
+        canvasCtrl.publish('addNewItem', common.commands.ADD_SHAPE, {type: shape});
+      });
+    }
+
+    /**
+     * uiCtrl订阅一系列事件，当事件发生之时进行处理
+     */
     uiCtrl.subscribe('showWarning', showWarning);
     uiCtrl.subscribe('showHotTools', showHotTools);
     uiCtrl.subscribe('updatePageSizeMd', updatePageSizeMd);
     uiCtrl.subscribe('load-image-lib', loadImgLib);
+
+    tbMain.children().click(onMainTbItemClick);
+    closeBtn.click(function () {
+      $(this).closest('.slidebar').removeClass('show');
+      $(document.body).removeClass('slidebar-open');
+      // canvasCtrl.publish('changePageSize');
+    });
     addPageBtn.click(onAddPageBtnClick);
     rmItemBtn.click(onRmItemBtnClick);
     hotTools.find('button, .mdl-menu__item').click(onHotToolsClick);
@@ -1150,7 +1434,8 @@
     installClickFocusBtns();
     installMediaComp();
     installAnimationTool();
-    doExpOpts.click(onExpOptsClick);
+    installShapeMaker();
+    doExpOpts.children().click(onExpOptsClick);
     fbContainer.on('shown.bs.modal', initializeFormBuilder).on('click', onFBContainerClick);
     initializeCtxMenu();
     bugFixes();

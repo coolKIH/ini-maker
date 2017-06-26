@@ -21,10 +21,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
   <link rel="stylesheet" href="https://fonts.lug.ustc.edu.cn/icon?family=Material+Icons">
   <link href="https://fonts.lug.ustc.edu.cn/css?family=Bubbler+One|Cinzel|Gloria+Hallelujah|Roboto" rel="stylesheet">
-  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.grey-teal.min.css" />
+  <!--<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.grey-teal.min.css" />-->
+  <link rel="stylesheet" href="styles/material.grey-teal.min.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
         integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.perfect-scrollbar/0.7.0/css/perfect-scrollbar.min.css" integrity="sha256-ANTwsT2Ffs0EVPyOuss4fxYnCxewzdZeahx93/uLWDM=" crossorigin="anonymous" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.5.0/jquery.contextMenu.min.css" integrity="sha256-Rq5lSTYX3OsnoQntXrKU/CyraVK0MJnXJXfozcmdoyw=" crossorigin="anonymous" />
   <link rel="stylesheet" href="styles/main.css">
   <!-- Color the status bar on mobile devices -->
@@ -35,9 +35,9 @@
   <link rel="canonical" href="http://www.example.com/">
   -->
 </head>
-<body>
+<body class="clearfix">
 <!-- Add your site or app content here -->
-<header id="main-header" class="d-flex align-items-center justify-content-between flex-wrap pure-box">
+<header id="main-header" class="d-flex align-items-center justify-content-between flex-wrap">
   <nav id="main-navbar" class="d-flex align-items-center">
     <div class="brand-logo cursor-pointer">
       <!--<div class="circles">-->
@@ -53,12 +53,12 @@
   </nav>
   <section class="d-flex align-items-center flex-wrap justify-content-center">
     <section id="tb--page-size">
-      <div class="mdl-textfield mdl-js-textfield is-dirty">
-        <input class="mdl-textfield__input page-width" type="text" id="page-width-adj" value="1280">
+      <div class="mdl-textfield mdl-js-textfield">
+        <input class="mdl-textfield__input page-width" type="text" id="page-width-adj" value="">
         <label class="mdl-textfield__label mb-0" for="page-width-adj">Width</label>
       </div>
-      <div class="mdl-textfield mdl-js-textfield is-dirty">
-        <input class="mdl-textfield__input page-height" type="text" id="page-hi-adj" value="800">
+      <div class="mdl-textfield mdl-js-textfield">
+        <input class="mdl-textfield__input page-height" type="text" id="page-hi-adj" value="">
         <label class="mdl-textfield__label mb-0" for="page-hi-adj">Height</label>
       </div>
     </section>
@@ -69,38 +69,39 @@
       </button>
       <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" id="do-export-options"
           for="do-export" aria-labelledby="do-export">
-        <li class="dl mdl-menu__item" data-command="fontName">HTML</li>
-        <li class="print mdl-menu__item" data-command="fontName">Print</li>
+        <li class="dl mdl-menu__item children-vertical-center"><i class="material-icons">code</i> <span>导出HTML</span></li>
+        <li class="print mdl-menu__item children-vertical-center"><i class="material-icons">print</i> <span>打印当前页</span></li>
       </ul>
     </div>
   </section>
 </header>
 <section id="canvas-playground">
-  <section class="pure-box d-flex align-items-center justify-content-around location-sm-b" id="tb--main">
+  <input type="file" name="import-html" id="import-html" accept="text/html" style="display: none;">
+  <section class="d-flex align-items-center justify-content-around" id="tb--main">
     <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="添加富文本" data-command="add-text"><i
-      class="material-icons">edit</i></div>
-    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="进入图片库" data-toggle-id="image-lib"><i
-      class="material-icons">collections</i></div>
-    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="制作表单" data-toggle="modal"
-         data-target="#form-builder-container"><i class="material-icons">domain</i></div>
-    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="添加常见部件"
-         data-toggle-id="popular-components"><i class="material-icons">view_comfy</i></div>
-    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" id="add-page" title="增加新页"><i
-      class="material-icons">note_add</i></div>
+      class="material-icons">edit</i><span>富文本</span></div>
+    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect active" title="进入图片仓库" data-toggle-id="image-lib"><i
+      class="material-icons">camera</i><span>图片库</span></div>
+    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="添加音频、视频、动画、卡片等"
+         data-toggle-id="popular-components"><i class="material-icons">view_comfy</i><span>新发现</span></div>
+    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" title="快速制作表单" data-toggle="modal"
+         data-target="#form-builder-container"><i class="material-icons">domain</i><span>表单制作</span></div>
+    <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" id="add-page" title="增加新画布"><i
+      class="material-icons">note_add</i><span>新画布</span></div>
     <div class="command mdl-button mdl-js-button mdl-js-ripple-effect" id="remove-item" title="移除元素"><i
-      class="material-icons">delete</i></div>
+      class="material-icons">delete</i><span>移除</span></div>
   </section>
   <section id="canvas-pages">
     <div id="overlays"></div>
     <div id="pages"></div>
   </section>
-  <section class="hot-tools text p-2 pure-box">
-    <button type="button"
+  <section class="hot-tools text p-2 pure-box card-wide card-note card-square card-tag">
+    <button type="button" title="关闭此工具栏"
             class="close mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-js-ripple-effect"
             aria-label="Close" onclick="$(this).closest('.hot-tools').removeClass('show');">
       <i aria-hidden="true" class="material-icons">close</i>
     </button>
-    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="fontName-dropMenu">
+    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="fontName-dropMenu" title="字体类型">
       <i class="material-icons">font_download</i>
     </button>
     <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect"
@@ -119,7 +120,7 @@
       <li class="mdl-menu__item" data-command="fontName">Monospace</li>
       <li class="mdl-menu__item" data-command="fontName">Courier New</li>
     </ul>
-    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="ontPixel-dropMenu">
+    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="ontPixel-dropMenu" title="字体大小">
       <i class="material-icons">format_size</i>
     </button>
     <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect"
@@ -138,69 +139,71 @@
       <li class="mdl-menu__item" data-command="fontSize" data-detail="1">100</li>
       <li class="mdl-menu__item" data-command="fontSize" data-detail="1">120</li>
     </ul>
-    <button data-command="bold" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="bold" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="粗体"><i
       class="material-icons">format_bold</i></button>
-    <button data-command="italic" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="italic" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="斜体"><i
       class="material-icons">format_italic</i></button>
-    <button data-command="underline" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="underline" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="下划线"><i
       class="material-icons">format_underlined</i></button>
-    <button data-command="strikethrough" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+    <button data-command="strikethrough" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="中划线">
       <i class="material-icons">format_strikethrough</i>
     </button>
-    <button data-command="insertUnorderedList" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="insertUnorderedList" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="无序列表"><i
       class="material-icons">format_list_bulleted</i></button>
-    <button data-command="insertOrderedList" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="insertOrderedList" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="有序列表"><i
       class="material-icons">format_list_numbered</i></button>
-    <button data-command="createLink" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="createLink" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="超链接"><i
       class="material-icons">insert_link</i></button>
-    <button id="fgcolor-button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="insertImage" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="插入链接图片"><i
+      class="material-icons">photo</i></button>
+    <button id="fgcolor-button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="字体色"><i
       class="material-icons">format_color_text</i></button>
-    <button id="bgcolor-button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button id="bgcolor-button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="背景色"><i
       class="material-icons">format_color_fill</i></button>
-    <button data-command="insertHorizontalRule" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
-      <i class="material-icons">&#8213;</i></button>
-    <button data-command="justifyCenter" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="insertHorizontalRule" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="水平分隔线">
+      <i class="material-icons">border_horizontal</i></button>
+    <button data-command="justifyCenter" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="居中对齐"><i
       class="material-icons">format_align_center</i></button>
-    <button data-command="justifyFull" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
-      class="material-icons">format_align_justify</i></button>
-    <button data-command="justifyLeft" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="justifyLeft" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="左对齐"><i
       class="material-icons">format_align_left</i></button>
-    <button data-command="justifyRight" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="justifyRight" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="右对齐"><i
       class="material-icons">format_align_right</i></button>
-    <button data-command="selectAll" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="justifyFull" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="全对齐"><i
+      class="material-icons">format_align_justify</i></button>
+    <button data-command="selectAll" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="全选"><i
       class="material-icons">select_all</i></button>
-    <button data-command="removeFormat" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"><i
+    <button data-command="removeFormat" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="移除格式"><i
       class="material-icons">format_clear</i></button>
-    <button data-command="redo" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
-      <i class="material-icons">redo</i>
-    </button>
-    <button data-command="undo" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon">
+    <button data-command="undo" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="撤销">
       <i class="material-icons">undo</i>
     </button>
+    <button data-command="redo" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" title="重做">
+      <i class="material-icons">redo</i>
+    </button>
   </section>
-  <aside id="image-lib" class="slidebar col-sm-12 col-md-3 px-0">
-    <header class="header text-center text-white d-flex justify-content-center align-items-center"><h1>图片仓库</h1>
-      <button type="button" class="close-btn mdl-button mdl-js-button mdl-button--icon" aria-label="Close">
-        <i class="material-icons">close</i>
-      </button>
-    </header>
+  <aside id="image-lib" class="slidebar show">
+    <!--<header class="header text-center text-white d-flex justify-content-center align-items-center"><h1>图片仓库</h1>-->
+      <!--<button type="button" class="close-btn mdl-button mdl-js-button mdl-button&#45;&#45;icon" aria-label="Close">-->
+        <!--<i class="material-icons">close</i>-->
+      <!--</button>-->
+    <!--</header>-->
     <article class="content">
       <div class="p-2">
         <a href="#color-platte" class="toggle mdl-button mdl-js-button mdl-js-ripple-effect d-inline-block"
-           data-toggle="collapse" aria-expanded="true"
+           data-toggle="collapse" aria-expanded="true" title="可作为活动元素背景，也可作为形状填充色"
            aria-controls="#color-platte">色板</a>
       </div>
       <section id="color-platte" class="collapse show">
         <section class="inner flex-wrap align-items-start d-flex p-2">
-          <div style="background: #780fa8" title="添加色块" id="add-color-fp"
-               class="d-flex justify-content-center align-items-center"><i class="material-icons text-white">add</i>
+          <div title="添加色块" id="add-color-fp"
+               class="d-flex justify-content-center align-items-center"><i class="material-icons">add</i>
           </div>
           <div class="color-brick" style="background: url('images/t_t.png') repeat" title="透明" data-color-code="rgba(0,0,0,0)"></div>
         </section>
       </section>
-      <div class="p-2">
+      <div class="p-2 mt-4">
         <a href="#special-bg-images" class="toggle mdl-button mdl-js-button mdl-js-ripple-effect d-inline-block"
-           data-toggle="collapse" aria-expanded="true"
+           data-toggle="collapse" aria-expanded="true" title="插入到当前画布中，作为元素或画布背景亦可"
            aria-controls="#special-bg-images">特色背景照</a>
       </div>
       <section id="special-bg-images" class="collapse show">
@@ -208,26 +211,44 @@
       </section>
     </article>
     <footer class="footer d-flex justify-content-center align-items-center">
-      <button type="button" id="upload-img-btn" onclick="$('#upload-img-field').get(0).click();">
-        <strong>&#8673;</strong></button>
+      <button type="button" id="upload-img-btn" title="上传照片" onclick="$('#upload-img-field').get(0).click();">
+        <i class="material-icons">file_upload</i> </button>
       <input name="input-images" multiple type="file" id="upload-img-field" accept="image/png, image/jpeg, image/gif"
              style="display: none;">
     </footer>
   </aside>
-  <aside id="popular-components" class="slidebar col-sm-12 col-md-3 px-0">
-    <header class="header text-center text-white d-flex justify-content-center align-items-center"><h1>常见部件</h1>
-      <button type="button" class="close-btn mdl-button mdl-js-button mdl-button--icon" aria-label="Close">
-        <i class="material-icons">close</i>
-      </button>
-    </header>
+  <aside id="popular-components" class="slidebar">
+    <!--<header class="header text-center text-white d-flex justify-content-center align-items-center"><h1>常见部件</h1>-->
+      <!--<button type="button" class="close-btn mdl-button mdl-js-button mdl-button&#45;&#45;icon" aria-label="Close">-->
+        <!--<i class="material-icons">close</i>-->
+      <!--</button>-->
+    <!--</header>-->
     <article class="content">
       <div class="p-2">
         <div class="d-flex flex-wrap align-items-start">
           <div class="component-container">
-            <div class="component music click-focus" title="添加音乐"><i class="material-icons">library_music</i></div>
+            <div class="component shape click-focus" title="添加三角形、方形、圆形"><h4>形状</h4></div>
+            <div class="detail-settings">
+              <form>
+                <select id="select-shape" class="form-control">
+                  <option value="triangle">三角形</option>
+                  <option value="rectangle">正方方形</option>
+                  <option value="circle">圆形</option>
+                </select>
+              </form>
+              <button type="button" class="mdl-button mdl-js-button mt-2 create" id="create-shape">创建</button>
+              <button type="button"
+                      class="click-un-focus mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect"
+                      aria-label="Close">
+                <i aria-hidden="true" class="material-icons">close</i>
+              </button>
+            </div>
+          </div>
+          <div class="component-container">
+            <div class="component music click-focus" title="添加音乐"><h4>音乐</h4></div>
             <div class="detail-settings">
               <!-- 添加音乐 -->
-              <input type="text" class="w-100 text" name="music-src" id="music-src" spellcheck="false" autocomplete="off" placeholder="音乐链接: https://haoyellow.cn/static/songs/ZARD%20-%20%E4%BA%8C%E4%BA%BA%E3%81%AE%E5%A4%8F.mp3">
+              <input type="text" class="w-100 text" name="music-src" id="music-src" spellcheck="false" autocomplete="off" placeholder="音乐链接，例如: https://haoyellow.cn/static/songs/ZARD%20-%20%E4%BA%8C%E4%BA%BA%E3%81%AE%E5%A4%8F.mp3">
               <section class="mt-2">
                 <label class="text-accent my-0 mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="autoplay-cb">
                   <input type="checkbox" id="autoplay-cb" class="mdl-checkbox__input">
@@ -247,11 +268,11 @@
             </div>
           </div>
           <div class="component-container">
-            <div class="component video click-focus" title="添加视频"><i class="material-icons">video_library</i></div>
+            <div class="component video click-focus" title="添加视频"><h4>视频</h4></div>
             <div class="detail-settings">
               <!-- 添加视频 -->
               <div class="w-100 children-vertical-center">
-                <input type="text" class="w-100 text" name="embed-video-code" id="embed-video-code" autocomplete="off" spellcheck="false" placeholder='<iframe width="560" height="315" src="https://www.youtube.com/embed/WqhZhgb2fS0" frameborder="0" allowfullscreen></iframe>'>
+                <input type="text" class="w-100 text" name="embed-video-code" id="embed-video-code" autocomplete="off" spellcheck="false" placeholder='内嵌视频代码，例如: <iframe width="560" height="315" src="https://www.youtube.com/embed/WqhZhgb2fS0" frameborder="0" allowfullscreen></iframe>'>
                 <button type="button" class="create w-100 mdl-button mdl-js-button mt-2" id="create-video-embed">创建</button>
               </div>
               <button type="button"
@@ -262,131 +283,125 @@
             </div>
           </div>
           <div class="component-container">
-            <div class="component animation click-focus" title="应用动画"><i class="material-icons">transform</i></div>
+            <div class="component animation click-focus" title="应用动画"><h4>动画特效</h4></div>
             <div class="detail-settings">
               <!-- 选择动画 -->
               <form>
                 <select id="select-animation" class="form-control">
-                  <option value="none">None</option>
-                  <optgroup label="Attention Seekers">
-                    <option value="bounce">bounce</option>
-                    <option value="flash">flash</option>
-                    <option value="pulse">pulse</option>
-                    <option value="rubberBand">rubberBand</option>
-                    <option value="shake">shake</option>
-                    <option value="swing">swing</option>
-                    <option value="tada">tada</option>
-                    <option value="wobble">wobble</option>
-                    <option value="jello">jello</option>
+                  <option value="none">无动画</option>
+                  <optgroup label="强调">
+                    <option value="bounce">弹跳</option>
+                    <option value="flash">闪光</option>
+                    <option value="pulse">搏动</option>
+                    <option value="rubberBand">橡皮筋</option>
+                    <option value="shake">抖动</option>
+                    <option value="swing">摆动</option>
+                    <option value="tada">踏踏</option>
+                    <option value="wobble">摇晃</option>
+                    <option value="jello">果冻</option>
                   </optgroup>
 
-                  <optgroup label="Bouncing Entrances">
-                    <option value="bounceIn">bounceIn</option>
-                    <option value="bounceInDown">bounceInDown</option>
-                    <option value="bounceInLeft">bounceInLeft</option>
-                    <option value="bounceInRight">bounceInRight</option>
-                    <option value="bounceInUp">bounceInUp</option>
+                  <optgroup label="弹跳进入">
+                    <option value="bounceIn">原地弹跳进入</option>
+                    <option value="bounceInDown">从顶部飞入</option>
+                    <option value="bounceInLeft">从左方飞入</option>
+                    <option value="bounceInRight">从右方飞入</option>
+                    <option value="bounceInUp">从底部飞入</option>
                   </optgroup>
 
-                  <optgroup label="Bouncing Exits">
-                    <option value="bounceOut">bounceOut</option>
-                    <option value="bounceOutDown">bounceOutDown</option>
-                    <option value="bounceOutLeft">bounceOutLeft</option>
-                    <option value="bounceOutRight">bounceOutRight</option>
-                    <option value="bounceOutUp">bounceOutUp</option>
+                  <optgroup label="弹跳消失">
+                    <option value="bounceOut">原地弹跳消失</option>
+                    <option value="bounceOutDown">向底部飞出</option>
+                    <option value="bounceOutLeft">向左方飞出</option>
+                    <option value="bounceOutRight">向右方飞出</option>
+                    <option value="bounceOutUp">向顶部飞出</option>
                   </optgroup>
 
-                  <optgroup label="Fading Entrances">
-                    <option value="fadeIn">fadeIn</option>
-                    <option value="fadeInDown">fadeInDown</option>
-                    <option value="fadeInDownBig">fadeInDownBig</option>
-                    <option value="fadeInLeft">fadeInLeft</option>
-                    <option value="fadeInLeftBig">fadeInLeftBig</option>
-                    <option value="fadeInRight">fadeInRight</option>
-                    <option value="fadeInRightBig">fadeInRightBig</option>
-                    <option value="fadeInUp">fadeInUp</option>
-                    <option value="fadeInUpBig">fadeInUpBig</option>
+                  <optgroup label="渐入">
+                    <option value="fadeIn">原地渐入</option>
+                    <option value="fadeInDown">从顶部渐入</option>
+                    <option value="fadeInLeft">从左方渐入</option>
+                    <option value="fadeInRight">从右方渐入</option>
+                    <option value="fadeInUp">从底部渐入</option>
                   </optgroup>
 
-                  <optgroup label="Fading Exits">
-                    <option value="fadeOut">fadeOut</option>
-                    <option value="fadeOutDown">fadeOutDown</option>
-                    <option value="fadeOutDownBig">fadeOutDownBig</option>
-                    <option value="fadeOutLeft">fadeOutLeft</option>
-                    <option value="fadeOutLeftBig">fadeOutLeftBig</option>
-                    <option value="fadeOutRight">fadeOutRight</option>
-                    <option value="fadeOutRightBig">fadeOutRightBig</option>
-                    <option value="fadeOutUp">fadeOutUp</option>
-                    <option value="fadeOutUpBig">fadeOutUpBig</option>
+                  <optgroup label="渐出">
+                    <option value="fadeOut">原地淡出</option>
+                    <option value="fadeOutDown">向底部淡出</option>
+                    <option value="fadeOutLeft">向左方淡出</option>
+                    <option value="fadeOutRight">向右方淡出</option>
+                    <option value="fadeOutUp">向顶部淡出</option>
                   </optgroup>
 
-                  <optgroup label="Flippers">
-                    <option value="flip">flip</option>
-                    <option value="flipInX">flipInX</option>
-                    <option value="flipInY">flipInY</option>
-                    <option value="flipOutX">flipOutX</option>
-                    <option value="flipOutY">flipOutY</option>
+                  <optgroup label="翻转">
+                    <option value="flip">经典翻转</option>
+                    <option value="flipInX">水平翻转</option>
+                    <option value="flipInY">竖直翻转</option>
+                    <option value="flipOutX">水平翻转淡出</option>
+                    <option value="flipOutY">竖直翻转淡出</option>
                   </optgroup>
 
-                  <optgroup label="Lightspeed">
-                    <option value="lightSpeedIn">lightSpeedIn</option>
-                    <option value="lightSpeedOut">lightSpeedOut</option>
+                  <optgroup label="光速">
+                    <option value="lightSpeedIn">光速进入</option>
+                    <option value="lightSpeedOut">光速消失</option>
                   </optgroup>
 
-                  <optgroup label="Rotating Entrances">
-                    <option value="rotateIn">rotateIn</option>
-                    <option value="rotateInDownLeft">rotateInDownLeft</option>
-                    <option value="rotateInDownRight">rotateInDownRight</option>
-                    <option value="rotateInUpLeft">rotateInUpLeft</option>
-                    <option value="rotateInUpRight">rotateInUpRight</option>
+                  <optgroup label="旋转进入">
+                    <option value="rotateIn">经典旋转进入</option>
+                    <option value="rotateInDownLeft">从左上方</option>
+                    <option value="rotateInDownRight">从右上方</option>
+                    <option value="rotateInUpLeft">从左下方</option>
+                    <option value="rotateInUpRight">从右下方</option>
                   </optgroup>
 
-                  <optgroup label="Rotating Exits">
-                    <option value="rotateOut">rotateOut</option>
-                    <option value="rotateOutDownLeft">rotateOutDownLeft</option>
-                    <option value="rotateOutDownRight">rotateOutDownRight</option>
-                    <option value="rotateOutUpLeft">rotateOutUpLeft</option>
-                    <option value="rotateOutUpRight">rotateOutUpRight</option>
+                  <optgroup label="旋转消失">
+                    <option value="rotateOut">经典旋转消失</option>
+                    <option value="rotateOutDownLeft">往左下方</option>
+                    <option value="rotateOutDownRight">往右下方</option>
+                    <option value="rotateOutUpLeft">往左上方</option>
+                    <option value="rotateOutUpRight">往右上方</option>
                   </optgroup>
 
-                  <optgroup label="Sliding Entrances">
-                    <option value="slideInUp">slideInUp</option>
-                    <option value="slideInDown">slideInDown</option>
-                    <option value="slideInLeft">slideInLeft</option>
-                    <option value="slideInRight">slideInRight</option>
+                  <optgroup label="平移进入">
+                    <option value="slideInUp">从底部进入</option>
+                    <option value="slideInDown">从顶部进入</option>
+                    <option value="slideInLeft">从左方进入</option>
+                    <option value="slideInRight">从右方进入</option>
 
                   </optgroup>
-                  <optgroup label="Sliding Exits">
-                    <option value="slideOutUp">slideOutUp</option>
-                    <option value="slideOutDown">slideOutDown</option>
-                    <option value="slideOutLeft">slideOutLeft</option>
-                    <option value="slideOutRight">slideOutRight</option>
+                  <optgroup label="平移消失">
+                    <option value="slideOutUp">往顶部消失</option>
+                    <option value="slideOutDown">往底部消失</option>
+                    <option value="slideOutLeft">往左方消失</option>
+                    <option value="slideOutRight">往右方消失</option>
 
                   </optgroup>
 
-                  <optgroup label="Zoom Entrances">
-                    <option value="zoomIn">zoomIn</option>
-                    <option value="zoomInDown">zoomInDown</option>
-                    <option value="zoomInLeft">zoomInLeft</option>
-                    <option value="zoomInRight">zoomInRight</option>
-                    <option value="zoomInUp">zoomInUp</option>
+                  <optgroup label="放大进入">
+                    <option value="zoomIn">经典放大进入</option>
+                    <option value="zoomInDown">从顶部放大进入</option>
+                    <option value="zoomInLeft">从左方放大进入</option>
+                    <option value="zoomInRight">从右方放大进入</option>
+                    <option value="zoomInUp">从底部放大进入</option>
                   </optgroup>
 
-                  <optgroup label="Zoom Exits">
-                    <option value="zoomOut">zoomOut</option>
-                    <option value="zoomOutDown">zoomOutDown</option>
-                    <option value="zoomOutLeft">zoomOutLeft</option>
-                    <option value="zoomOutRight">zoomOutRight</option>
-                    <option value="zoomOutUp">zoomOutUp</option>
+                  <optgroup label="缩小消失">
+                    <option value="zoomOut">经典缩小消失</option>
+                    <option value="zoomOutDown">往下方缩小消失</option>
+                    <option value="zoomOutLeft">往左方缩小消失</option>
+                    <option value="zoomOutRight">往右方缩小消失</option>
+                    <option value="zoomOutUp">往顶部缩小消失</option>
                   </optgroup>
 
-                  <optgroup label="Specials">
-                    <option value="hinge">hinge</option>
-                    <option value="rollIn">rollIn</option>
-                    <option value="rollOut">rollOut</option>
+                  <optgroup label="特殊效果">
+                    <option value="hinge">悬摇消失</option>
+                    <option value="rollIn">滚动进入</option>
+                    <option value="rollOut">滚动消失</option>
                   </optgroup>
                 </select>
-                <button type="button" class="mdl-button mdl-js-button mt-2 animation w-100 text-accent" id="activate-animation">应用</button>
+                <label class="text-white mt-2">动画延迟&nbsp;&nbsp;<input type="number" class="number" value="0" id="animate-delay" min="0"> 毫秒</label>
+                <label class="text-white">动画时长&nbsp;&nbsp;<input type="number" class="number" value="1000" id="animate-duration" min="0"> 毫秒</label>
+                <button type="button" class="mdl-button mdl-js-button mt-2 animation w-100 text-accent create" id="activate-animation">应用</button>
               </form>
               <button type="button"
                       class="click-un-focus mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect"
@@ -396,16 +411,16 @@
             </div>
           </div>
           <div class="component-container">
-            <div class="component card" data-component="card-square"><h4>方卡片</h4></div>
+            <div class="component card" data-component="card-square"><h4>方形卡片</h4></div>
           </div>
           <div class="component-container">
-            <div class="component card" data-component="card-wide"><h4>宽卡片</h4></div>
+            <div class="component card" data-component="card-wide"><h4>大号卡片</h4></div>
           </div>
           <div class="component-container">
-            <div class="component card" data-component="card-tag"><h4>贴纸</h4></div>
+            <div class="component card" data-component="card-tag"><h4>相片贴纸</h4></div>
           </div>
           <div class="component-container">
-            <div class="component card" data-component="card-note"><h4>便条</h4></div>
+            <div class="component card" data-component="card-note"><h4>日程便条</h4></div>
           </div>
           <div class="component-container">
             <div class="component slideshow" data-component="slideshow"><h4>幻灯片</h4></div>
@@ -430,11 +445,11 @@
           <div id="form-builder-mounter"></div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="clear mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
+          <button type="button" class="clear mdl-button mdl-js-button mdl-js-ripple-effect"
                   data-dismiss="modal">取消并清除
           </button>
           <button type="button"
-                  class="submit mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+                  class="submit mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
             确定制作完成
           </button>
         </div>
@@ -442,10 +457,10 @@
     </div>
   </section>
   <section id="alignment-lines">
-    <svg class="h" width="1000px" height="2px">
+    <svg class="h" width="1000" height="2">
       <line x1="0" x2="100%" y1="1" y2="1" stroke-width="2" stroke-dasharray="6, 6"></line>
     </svg>
-    <svg class="v" width="2px" height="1000px">
+    <svg class="v" width="2" height="1000">
       <line x1="0" x2="0" y1="0" y2="100%" stroke-width="2" stroke-dasharray="6, 6"></line>
     </svg>
   </section>
@@ -480,10 +495,10 @@
 </script>
 <script type="text/html-template" id="tpl--lib-img-item">
   <div class="img-item" data-img-src="{{img-src}}">
-    <div style="background: url('{{img-src}}') no-repeat center / cover" class="w-100 h-100"></div>
+    <div style="background: url('{{img-src}}') no-repeat center / cover" class="w-100 h-100 img-ctn"></div>
     <div class="options">
-      <button class="option is-bg">背景</button>
-      <button class="option is-item">插入</button>
+      <button class="option is-bg" title="用作当前画布或活动元素的背景图案">背景</button>
+      <button class="option is-item" title="作为图片插入到当前画布">插入</button>
     </div>
   </div>
 </script>
@@ -581,7 +596,7 @@
   <div class="demo-card-image mdl-card mdl-shadow--2dp">
     <div class="mdl-card__title mdl-card--expand"></div>
     <div class="mdl-card__actions">
-      <span class="demo-card-image__filename">Image.jpg</span>
+      <span class="demo-card-image__filename">Zard Forever</span>
     </div>
   </div>
 </script>
@@ -621,8 +636,8 @@
   <div class="demo-card-event mdl-card mdl-shadow--2dp">
     <div class="mdl-card__title mdl-card--expand">
       <h4>
-        Featured event:<br>
-        May 24, 2016<br>
+        Today event:<br>
+        June 27, 2017<br>
         7-11pm
       </h4>
     </div>
@@ -658,10 +673,10 @@
         integrity="sha256-C7HjUf9VdfVJ5Dxet+nW9wK7rKLAhEkEYMjGXsw7FM8=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.5.0/jquery.contextMenu.min.js"
         integrity="sha256-MP9gv2enc2NbOKgW6K+YNQtImn/OXpYBj2nTZj43Idc=" crossorigin="anonymous"></script>
-<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.perfect-scrollbar/0.7.0/js/perfect-scrollbar.jquery.min.js" integrity="sha256-G7x5vTR7iVBtZ10VflIkF/XJzfzAuS0tE6AFIb4d9FQ=" crossorigin="anonymous"></script>
+<!--<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>-->
 <!-- build:js scripts/main.min.js -->
 <script src="scripts/service-worker.js"></script>
+<script src="scripts/material.min.js"></script>
 <script src="scripts/mediator.js"></script>
 <script src="scripts/main.js"></script>
 <!-- endbuild -->

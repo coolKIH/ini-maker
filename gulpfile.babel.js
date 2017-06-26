@@ -39,7 +39,7 @@ const reload = browserSync.reload;
 
 // Lint JavaScript
 gulp.task('lint', () =>
-  gulp.src(['app/scripts/**/*.js','!node_modules/**'])
+  gulp.src(['app/scripts/main.js'])
     .pipe($.eslint())
     .pipe($.eslint.format())
     .pipe($.if(!browserSync.active, $.eslint.failAfterError()))
@@ -118,6 +118,7 @@ gulp.task('scripts', () =>
       //       you need to explicitly list your scripts here in the right order
       //       to be correctly concatenated
       './app/scripts/mediator.js',
+      './app/scripts/material.min.js',
       './app/scripts/main.js'
       // Other scripts
     ])
@@ -181,7 +182,7 @@ gulp.task('serve', ['scripts', 'styles'], () => {
 
   gulp.watch(['app/**/*.html'], reload);
   gulp.watch(['app/styles/**/*.{scss,css}'], ['styles', reload]);
-  gulp.watch(['app/scripts/main.js'], ['lint', 'scripts', reload]);
+  gulp.watch(['app/scripts/main.js'], ['scripts', reload]);
   gulp.watch(['app/images/**/*'], reload);
 });
 
